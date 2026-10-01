@@ -1,3 +1,3 @@
-# Anytime Business Finance
-
-Self-contained GitHub Pages preview build. Branding and styling are embedded in the HTML so no asset folder is required for preview.
+# Anytime Business Finance — Premium Redesign
+Premium navy/gold static site prepared for GitHub Pages preview.
+The enquiry form is preview-only on GitHub Pages. Production submission handling should be configured on the final PHP-capable host.

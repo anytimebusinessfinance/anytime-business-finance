@@ -1,3 +1,2 @@
 User-agent: *
 Allow: /
-Sitemap: https://www.anytimebusinessfinance.co.uk/sitemap.xml
