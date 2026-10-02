@@ -100,3 +100,20 @@ body{font-size:16px;font-family:Montserrat,Arial,sans-serif;-webkit-font-smoothi
  .card-grid .solution-card p{padding-right:34px!important}
  .card-grid .solution-card b{right:22px!important;bottom:20px!important}
 }
+
+/* Card CTA layout correction — arrow gets its own row below copy */
+.card-grid .solution-card>div{height:100%!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important}
+.card-grid .solution-card p{padding-right:0!important;max-width:100%!important;margin-bottom:18px!important}
+.card-grid .solution-card b{
+ position:static!important;
+ margin-top:auto!important;
+ align-self:flex-end!important;
+ width:34px!important;
+ height:34px!important;
+ display:grid!important;
+ place-items:center!important;
+ border:1px solid rgba(201,169,110,.85)!important;
+ border-radius:50%!important;
+ font-size:17px!important;
+ line-height:1!important;
+}
