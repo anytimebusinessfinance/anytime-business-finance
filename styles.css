@@ -117,3 +117,17 @@ body{font-size:16px;font-family:Montserrat,Arial,sans-serif;-webkit-font-smoothi
  font-size:17px!important;
  line-height:1!important;
 }
+
+/* Dropdown indicator reset: remove all pseudo-chevron artefacts */
+.nav .dropdown > a::before,
+.nav .dropdown > a::after{
+  content:none!important;
+  display:none!important;
+  width:0!important;
+  height:0!important;
+  border:0!important;
+}
+.nav .dropdown > a{
+  gap:0!important;
+  padding-right:0!important;
+}
