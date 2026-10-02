@@ -1,0 +1,57 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Finance Calculators | Anytime Business Finance</title><meta name="description" content="Commercial finance calculators for loan repayments, amortisation, interest-only facilities, DSCR and asset finance.">
+<link rel="stylesheet" href="styles.css"></head><body class="page-calculators">
+<header class="site-header">
+  <div class="topbar"><div class="wrap topbar-inner"><span>Commercial Finance Brokers</span><a href="mailto:sam@anytimebusinessfinance.co.uk">sam@anytimebusinessfinance.co.uk</a></div></div>
+  <div class="wrap navrow">
+    <a class="brand" href="index.html" aria-label="Anytime Business Finance home">
+      <span class="brand-mark"><span class="arc"></span><strong>ABF</strong></span>
+      <span class="brand-name">ANYTIME<br>BUSINESS<br>FINANCE<small>EXPERIENCE. ACCESS. RESULTS.</small></span>
+    </a>
+    <button class="menu-toggle" aria-label="Open menu">☰</button>
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <div class="dropdown"><a href="finance-solutions.html">Finance Solutions</a><div class="dropdown-menu">
+        <a href="business-loans.html">Business Loans</a><a href="asset-finance.html">Asset Finance</a>
+        <a href="property-finance.html">Property Finance</a><a href="working-capital.html">Working Capital</a>
+        <a href="revolving-credit.html">Revolving Credit Facilities</a><a href="healthcare-finance.html">Healthcare Finance</a>
+      </div></div>
+      <a href="why-abf.html">Why ABF</a><a href="about.html">About Us</a>
+      <div class="dropdown"><a href="knowledge-centre.html">Knowledge Centre</a><div class="dropdown-menu">
+        <a href="glossary.html">Finance Glossary</a><a href="faqs.html">FAQs</a>
+      </div></div>
+      <a href="contact.html">Contact</a>
+      <a class="btn nav-cta" href="discuss-funding.html">Discuss Your Funding →</a>
+    </nav>
+  </div>
+</header>
+<main>
+<section class="inner-hero"><div class="wrap"><div class="eyebrow">FINANCE CALCULATORS</div><h1>Put the numbers around your funding.</h1><p>Practical calculators for indicative repayments, amortisation, debt service and asset finance.</p></div></section>
+<section class="section"><div class="wrap calculator-shell">
+<div class="calc-tabs" role="tablist">
+<button class="calc-tab active" data-target="loan">Loan & Amortisation</button><button class="calc-tab" data-target="interest">Interest Only</button><button class="calc-tab" data-target="dscr">DSCR</button><button class="calc-tab" data-target="asset">Asset Finance</button>
+</div>
+<section class="calc-panel active" id="calc-loan"><div class="calc-grid"><div><h2>Loan repayment calculator</h2><p>Calculate indicative repayments and generate a full amortisation schedule.</p><div class="calc-fields">
+<label>Loan amount (£)<input id="loanAmount" type="number" min="1" step="1000" value="500000"></label>
+<label>Annual interest rate (%)<input id="loanRate" type="number" min="0" step="0.01" value="6.25"></label>
+<label>Term (months)<input id="loanTerm" type="number" min="1" max="600" step="1" value="60"></label>
+<label>Repayment frequency<select id="loanFrequency"><option value="12">Monthly</option><option value="4">Quarterly</option></select></label>
+</div></div><div class="calc-results"><div><span>Indicative repayment</span><strong id="loanPayment">—</strong></div><div><span>Total interest</span><strong id="loanInterest">—</strong></div><div><span>Total repayment</span><strong id="loanTotal">—</strong></div></div></div>
+<div class="schedule-head"><h3>Amortisation schedule</h3><button type="button" class="btn calc-export" id="exportSchedule">Export CSV</button></div>
+<div class="schedule-scroll"><table class="schedule"><thead><tr><th>Period</th><th>Opening balance</th><th>Repayment</th><th>Interest</th><th>Capital</th><th>Closing balance</th></tr></thead><tbody id="scheduleBody"></tbody></table></div>
+</section>
+<section class="calc-panel" id="calc-interest"><div class="calc-grid"><div><h2>Interest-only calculator</h2><p>Estimate interest payments where capital remains outstanding during the term.</p><div class="calc-fields"><label>Facility amount (£)<input id="ioAmount" type="number" min="1" value="500000"></label><label>Annual interest rate (%)<input id="ioRate" type="number" min="0" step=".01" value="8"></label><label>Term (months)<input id="ioTerm" type="number" min="1" value="12"></label><label>Interest treatment<select id="ioType"><option value="serviced">Serviced monthly</option><option value="retained">Retained / rolled up (simple illustration)</option></select></label></div></div><div class="calc-results"><div><span>Monthly interest</span><strong id="ioMonthly">—</strong></div><div><span>Total interest</span><strong id="ioInterest">—</strong></div><div><span>Capital at maturity</span><strong id="ioCapital">—</strong></div><div><span>Total incl. interest</span><strong id="ioTotal">—</strong></div></div></div></section>
+<section class="calc-panel" id="calc-dscr"><div class="calc-grid"><div><h2>DSCR calculator</h2><p>Compare cash available for debt service with existing and proposed annual repayments.</p><div class="calc-fields"><label>EBITDA / cash available (£)<input id="dscrEbitda" type="number" value="250000"></label><label>Adjustments (£)<input id="dscrAdjust" type="number" value="0"></label><label>Existing annual debt service (£)<input id="dscrExisting" type="number" min="0" value="80000"></label><label>Proposed annual debt service (£)<input id="dscrProposed" type="number" min="0" value="40000"></label></div></div><div class="calc-results"><div><span>Adjusted cash available</span><strong id="dscrCash">—</strong></div><div><span>Total debt service</span><strong id="dscrDebt">—</strong></div><div><span>DSCR</span><strong id="dscrRatio">—</strong></div><p class="calc-note">Lenders calculate debt service and affordability differently. This ratio is an illustrative measure only.</p></div></div></section>
+<section class="calc-panel" id="calc-asset"><div class="calc-grid"><div><h2>Asset finance calculator</h2><p>Estimate repayments with a deposit and optional balloon payment.</p><div class="calc-fields"><label>Asset cost (£)<input id="assetCost" type="number" min="1" value="100000"></label><label>Deposit (£)<input id="assetDeposit" type="number" min="0" value="10000"></label><label>Annual interest rate (%)<input id="assetRate" type="number" min="0" step=".01" value="7.5"></label><label>Term (months)<input id="assetTerm" type="number" min="1" value="60"></label><label>Balloon / residual (£)<input id="assetBalloon" type="number" min="0" value="0"></label></div></div><div class="calc-results"><div><span>Amount financed</span><strong id="assetFinanced">—</strong></div><div><span>Indicative monthly repayment</span><strong id="assetPayment">—</strong></div><div><span>Total interest / finance cost</span><strong id="assetInterest">—</strong></div><div><span>Total payable incl. deposit</span><strong id="assetTotal">—</strong></div></div></div></section>
+<div class="calculator-disclaimer"><strong>Important:</strong> These calculators provide illustrative figures only. They are not a finance offer, quotation or recommendation. Actual repayments, interest calculations, fees, security requirements and facility terms vary by lender and product. Finance is subject to status, eligibility and lender approval.</div>
+</div></section></main>
+<footer class="footer">
+ <div class="wrap footer-grid">
+  <div><div class="footer-brand">ANYTIME BUSINESS FINANCE</div><p>Commercial finance structured around your business.</p><strong>EXPERIENCE. ACCESS. RESULTS.</strong></div>
+  <div><h4>Finance Solutions</h4><a href="business-loans.html">Business Loans</a><a href="asset-finance.html">Asset Finance</a><a href="property-finance.html">Property Finance</a><a href="working-capital.html">Working Capital</a><a href="revolving-credit.html">Revolving Credit</a><a href="healthcare-finance.html">Healthcare Finance</a></div>
+  <div><h4>Company</h4><a href="why-abf.html">Why ABF</a><a href="about.html">About Us</a><a href="contact.html">Contact</a><a href="privacy.html">Privacy</a><a href="cookies.html">Cookies</a><a href="terms.html">Terms</a></div>
+  <div><h4>Contact</h4><a href="mailto:sam@anytimebusinessfinance.co.uk">sam@anytimebusinessfinance.co.uk</a><a href="discuss-funding.html">Discuss Your Funding →</a></div>
+ </div>
+ <div class="wrap copyright">© 2026 Anytime Business Finance. All rights reserved.<span class="copyright-disclaimer">Anytime Business Finance Ltd is a commercial finance intermediary and not a lender. We introduce businesses to third-party finance providers and may receive a commission from a lender or finance provider following a successful introduction. Finance is subject to status, eligibility and lender approval. Terms, rates and availability vary between finance providers and applicants. No funding is guaranteed.</span></div>
+</footer>
+<script src="script.js"></script><script src="calculators.js"></script></body></html>
