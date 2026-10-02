@@ -171,3 +171,48 @@ body{font-size:16px;font-family:Montserrat,Arial,sans-serif;-webkit-font-smoothi
 /* Copyright/disclosure spacing */
 .copyright-disclaimer{margin-top:0!important;margin-left:.45em!important;display:inline!important}
 @media(max-width:650px){.copyright-disclaimer{display:block!important;margin-left:0!important;margin-top:5px!important}}
+
+
+/* Final visual differentiation pass — ABF */
+.inner-hero{position:relative;isolation:isolate;overflow:hidden}
+.inner-hero:after{content:"";position:absolute;inset:auto -8% -55% auto;width:520px;height:520px;border:1px solid rgba(201,169,110,.18);border-radius:50%;z-index:-1}
+.page-business-loans .inner-hero{background-position:12% center!important}
+.page-asset-finance .inner-hero{background-position:30% center!important}
+.page-property-finance .inner-hero{background-position:72% center!important}
+.page-working-capital .inner-hero{background-position:42% center!important}
+.page-rcf .inner-hero{background-position:88% center!important}
+.page-healthcare .inner-hero{background-position:62% center!important}
+.page-about .inner-hero{background-position:78% center!important}
+.page-why .inner-hero{background-position:22% center!important}
+.page-solutions .inner-hero{background-position:52% center!important}
+
+/* Knowledge pages deliberately use a cleaner editorial treatment rather than repeating the City image */
+.page-knowledge .inner-hero,.page-glossary .inner-hero,.page-faqs .inner-hero{
+ background-image:
+ radial-gradient(circle at 82% 20%,rgba(201,169,110,.18),transparent 25%),
+ linear-gradient(115deg,#06162b 0%,#0b1f3b 58%,#123457 100%)!important;
+}
+.page-contact .inner-hero,.page-enquiry .inner-hero{
+ background-image:
+ linear-gradient(100deg,rgba(4,20,39,.98),rgba(11,31,59,.82)),
+ url('assets/london-hero.png')!important;
+ background-position:80% center!important;
+}
+.page-knowledge .plain-card,.page-glossary .glossary article,.page-faqs details{
+ transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.page-knowledge .plain-card:hover,.page-glossary .glossary article:hover{
+ transform:translateY(-3px);box-shadow:0 16px 38px rgba(11,31,59,.09);border-color:rgba(201,169,110,.55);
+}
+.page-glossary .glossary article h3{color:var(--navy);margin-bottom:10px}
+.page-faqs details[open]{border-bottom-color:var(--gold);background:linear-gradient(90deg,rgba(201,169,110,.07),transparent);padding-left:18px;padding-right:18px}
+.page-faqs summary{position:relative;padding-right:34px}
+.page-faqs summary::after{content:"+";position:absolute;right:4px;top:-2px;color:var(--gold);font-family:Arial,sans-serif;font-size:26px;font-weight:400}
+.page-faqs details[open] summary::after{content:"–"}
+.page-enquiry .form-wrap{background:#fff;padding:42px;box-shadow:0 18px 50px rgba(11,31,59,.08);border-top:4px solid var(--gold)}
+.page-contact .feature-panel,.page-enquiry .form-wrap{border-radius:2px}
+@media(max-width:650px){
+ .inner-hero:after{width:300px;height:300px;right:-35%;bottom:-40%}
+ .page-enquiry .form-wrap{padding:24px}
+ .page-glossary .glossary article{padding:23px}
+}
