@@ -71,3 +71,32 @@ body{font-size:16px;font-family:Montserrat,Arial,sans-serif;-webkit-font-smoothi
 /* Clean navigation dropdown indicators */
 .dropdown>a{display:inline-flex;align-items:center;gap:6px}
 .dropdown>a::after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transform-origin:center}
+
+/* FINAL finance-card arrow fix — override original circular button */
+.card-grid .solution-card{padding-right:32px!important}
+.card-grid .solution-card p{padding-right:42px!important;max-width:none!important}
+.card-grid .solution-card b{
+  position:absolute!important;
+  right:28px!important;
+  bottom:24px!important;
+  width:auto!important;
+  height:auto!important;
+  min-width:0!important;
+  min-height:0!important;
+  border:none!important;
+  outline:none!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:block!important;
+  padding:0!important;
+  font-size:22px!important;
+  line-height:1!important;
+  color:var(--gold)!important;
+}
+.card-grid .solution-card b::before,.card-grid .solution-card b::after{content:none!important;display:none!important}
+@media(max-width:650px){
+ .card-grid .solution-card{padding-right:28px!important}
+ .card-grid .solution-card p{padding-right:34px!important}
+ .card-grid .solution-card b{right:22px!important;bottom:20px!important}
+}
