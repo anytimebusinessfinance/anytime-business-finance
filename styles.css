@@ -67,3 +67,7 @@ body{font-size:16px;font-family:Montserrat,Arial,sans-serif;-webkit-font-smoothi
   .solution-card{padding-right:58px!important}
   .solution-card b{right:22px!important;bottom:22px!important;font-size:22px!important}
 }
+
+/* Clean navigation dropdown indicators */
+.dropdown>a{display:inline-flex;align-items:center;gap:6px}
+.dropdown>a::after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transform-origin:center}
