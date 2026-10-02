@@ -131,3 +131,16 @@ body{font-size:16px;font-family:Montserrat,Arial,sans-serif;-webkit-font-smoothi
   gap:0!important;
   padding-right:0!important;
 }
+
+/* Footer intermediary disclosure */
+.footer-disclaimer{
+  margin-top:42px;
+  padding-top:24px;
+  border-top:1px solid rgba(255,255,255,.14);
+  color:#aeb9c7;
+  font-size:11px;
+  line-height:1.7;
+  max-width:1180px;
+}
+.footer-disclaimer + .copyright{margin-top:20px}
+@media(max-width:650px){.footer-disclaimer{margin-top:30px;font-size:10.5px;line-height:1.65}}
