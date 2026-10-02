@@ -144,3 +144,20 @@ body{font-size:16px;font-family:Montserrat,Arial,sans-serif;-webkit-font-smoothi
 }
 .footer-disclaimer + .copyright{margin-top:20px}
 @media(max-width:650px){.footer-disclaimer{margin-top:30px;font-size:10.5px;line-height:1.65}}
+
+/* Refine legal disclosure: visually pair it with copyright */
+.footer-disclaimer{
+  margin-top:30px!important;
+  padding-top:18px!important;
+  font-size:9.5px!important;
+  line-height:1.55!important;
+  color:rgba(223,231,240,.58)!important;
+  letter-spacing:.01em!important;
+}
+.footer-disclaimer + .copyright{
+  margin-top:10px!important;
+  padding-top:0!important;
+}
+@media(max-width:650px){
+  .footer-disclaimer{font-size:9px!important;line-height:1.55!important}
+}
