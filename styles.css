@@ -161,3 +161,9 @@ body{font-size:16px;font-family:Montserrat,Arial,sans-serif;-webkit-font-smoothi
 @media(max-width:650px){
   .footer-disclaimer{font-size:9px!important;line-height:1.55!important}
 }
+
+/* Copyright-line disclosure — final footer treatment */
+.footer-disclaimer{display:none!important}
+.copyright{display:block!important;font-size:11px!important;line-height:1.55!important;color:#aeb9c7!important}
+.copyright-disclaimer{display:block!important;margin-top:7px!important;max-width:1180px!important;font:inherit!important;line-height:inherit!important;color:inherit!important}
+@media(max-width:650px){.copyright{font-size:10px!important}.copyright-disclaimer{margin-top:6px!important}}
