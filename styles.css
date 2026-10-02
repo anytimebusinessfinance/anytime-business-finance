@@ -238,3 +238,11 @@ body{font-size:16px;font-family:Montserrat,Arial,sans-serif;-webkit-font-smoothi
 .page-knowledge .section.alt .two-col{align-items:center}
 @media(max-width:980px){.knowledge-intro{grid-template-columns:1fr;gap:18px;margin-bottom:36px}.knowledge-intro>p{max-width:720px}.resource-grid{grid-template-columns:1fr 1fr}.resource-card:last-child{grid-column:1/-1;min-height:260px}}
 @media(max-width:650px){.knowledge-intro{margin-bottom:28px}.knowledge-intro>p{font-size:15px}.resource-grid{grid-template-columns:1fr;gap:16px}.resource-card,.resource-card:last-child{grid-column:auto;min-height:0;padding:27px 25px}.resource-number{margin-bottom:20px}.resource-card h3{font-size:24px}.resource-card b{margin-top:24px}}
+
+/* Calculator export controls */
+.export-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.export-actions .btn{min-height:44px}
+#exportPdf{border:0;cursor:pointer}
+.schedule-head>div:first-child h3{margin-bottom:5px}
+.schedule-head>div:first-child p{margin:0}
+@media(max-width:650px){.export-actions{width:100%;justify-content:stretch}.export-actions .btn{flex:1;text-align:center;padding-left:12px;padding-right:12px}}
