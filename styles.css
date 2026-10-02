@@ -167,3 +167,7 @@ body{font-size:16px;font-family:Montserrat,Arial,sans-serif;-webkit-font-smoothi
 .copyright{display:block!important;font-size:11px!important;line-height:1.55!important;color:#aeb9c7!important}
 .copyright-disclaimer{display:block!important;margin-top:7px!important;max-width:1180px!important;font:inherit!important;line-height:inherit!important;color:inherit!important}
 @media(max-width:650px){.copyright{font-size:10px!important}.copyright-disclaimer{margin-top:6px!important}}
+
+/* Copyright/disclosure spacing */
+.copyright-disclaimer{margin-top:0!important;margin-left:.45em!important;display:inline!important}
+@media(max-width:650px){.copyright-disclaimer{display:block!important;margin-left:0!important;margin-top:5px!important}}
