@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap');
 
 :root{--navy:#0B1F3B;--navy2:#06162b;--gold:#C9A96E;--cream:#f7f4ee;--ink:#152033;--muted:#667085;--white:#fff;--line:#e7e2d8}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.6;background:#fff}a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 48px));margin:auto}
@@ -12,7 +13,7 @@ h1,h2,h3{font-family:Georgia,'Times New Roman',serif;color:var(--navy);line-heig
 @media(max-width:650px){.wrap{width:min(100% - 30px,1180px)}.navrow{height:86px}.brand-mark{width:68px}.brand-mark strong{font-size:30px}.brand-name{font-size:14px}.hero{min-height:620px}.hero-copy{padding:55px 0}.hero p{font-size:17px}.actions,.trust-row{flex-direction:column}.card-grid,.mini-grid,.glossary,.form-grid,.steps,.footer-grid{grid-template-columns:1fr}.full{grid-column:auto}.section{padding:58px 0}.split-copy{padding:58px 25px}.motto{padding:25px;font-size:19px}.cta .wrap{display:block}.cta .btn{margin-top:20px}.inner-hero{padding:72px 0}}
 
 /* VERIFIED PREMIUM VISUAL MASTER */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap');
+
 body{font-family:Montserrat,Arial,sans-serif}.site-header{background:#fff!important}.topbar{background:#06162b!important}
 .navrow{height:108px}.brand{min-width:290px}.brand-mark{width:92px}.brand-mark strong{font-family:"Playfair Display",Georgia,serif}
 .brand-name{font-family:"Playfair Display",Georgia,serif;font-size:16px}.nav{font-family:Montserrat,Arial,sans-serif;font-weight:600}
@@ -294,4 +295,83 @@ input:focus,select:focus,textarea:focus{outline:2px solid rgba(201,169,110,.35);
  .quote-band{padding:56px 0}
  .feature-panel{padding:28px}
  .footer{padding-top:48px}
+}
+
+
+/* Responsive device pass — 5 October 2026 */
+img,video{max-width:100%;height:auto}
+.two-col,.calc-grid,.calc-fields,.calc-results,.form-grid,.footer-grid{min-width:0}
+.two-col>*,.calc-grid>*,.calc-fields>*,.calc-results>*,.form-grid>*{min-width:0}
+.footer a,.feature-panel a,.legal{overflow-wrap:anywhere}
+input,select,textarea{min-width:0;max-width:100%}
+.btn{white-space:normal;text-align:center}
+.menu-toggle{width:44px;min-height:44px;flex-shrink:0;cursor:pointer;line-height:1}
+:where(a,button,summary):focus-visible{outline:3px solid var(--gold);outline-offset:4px}
+.dropdown{display:flex;align-items:center}
+.submenu-toggle{display:grid;place-items:center;min-width:28px;min-height:44px;border:0;background:transparent;color:var(--navy);cursor:pointer;padding:8px}
+.submenu-toggle span{display:block;width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg)}
+.submenu-toggle[aria-expanded="true"] span{transform:rotate(225deg)}
+.nav .dropdown-menu{top:100%;display:none}
+.nav .dropdown.expanded>.dropdown-menu,.nav .dropdown:focus-within>.dropdown-menu{display:grid}
+@media(hover:hover) and (pointer:fine){.nav .dropdown:hover>.dropdown-menu{display:grid}}
+@media(max-width:1100px){
+ .topbar{display:none}
+ .navrow{height:88px;gap:16px}
+ .brand{min-width:0}
+ .menu-toggle{display:block}
+ .nav{display:none;position:absolute;left:0;right:0;top:100%;background:#fff;padding:16px 24px;box-shadow:0 15px 30px rgba(0,0,0,.15);flex-direction:column;align-items:stretch;gap:4px;font-size:15px;max-height:calc(100vh - 88px);max-height:calc(100dvh - 88px);overflow-y:auto;overscroll-behavior:contain}
+ .nav.open{display:flex}
+ .nav>a,.nav .dropdown>a{display:flex;align-items:center;min-height:44px;padding:10px 0}
+ .nav .nav-cta{margin-top:8px}
+ .nav .dropdown{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:center}
+ .nav .submenu-toggle{width:44px;min-height:44px;border:1px solid var(--line);border-radius:2px}
+ .nav .dropdown>.dropdown-menu{display:none!important;grid-column:1/-1;position:static;min-width:0;box-shadow:none;border:0;border-left:2px solid var(--gold);margin:4px 0 10px;padding:0 0 0 12px}
+ .nav .dropdown.expanded>.dropdown-menu{display:grid!important}
+ .nav .dropdown-menu a{min-height:44px;padding:10px 12px}
+ .footer-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:32px}
+ .calc-grid{grid-template-columns:minmax(0,1fr)}
+ .cta .wrap{gap:24px}
+ .cta .btn{flex-shrink:0}
+}
+@media(max-width:760px){
+ .card-grid,.mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .calc-results{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .calc-note{grid-column:1/-1}
+ .cta .wrap{display:block}
+ .cta .btn{margin-top:24px}
+ .eyebrow:after{width:45px}
+}
+@media(max-width:650px){
+ .wrap{width:calc(100% - 32px)}
+ .hero h1{font-size:clamp(34px,9.6vw,42px)!important}
+ .inner-hero h1{font-size:clamp(32px,9vw,40px)}
+ h2,.center h2,.split-copy h2,.process h2,.cta h2{font-size:clamp(28px,8.4vw,34px)}
+ .eyebrow{font-size:10px;letter-spacing:.16em;overflow-wrap:break-word}
+ .eyebrow:after{width:28px;margin-left:10px}
+ .hero{background-position:62% center!important}
+ .hero-copy{padding:48px 0}
+ .hero .actions{align-items:stretch}
+ .hero .actions .btn{width:100%}
+ .trust-row{gap:12px!important;margin-top:28px}
+ .trust-row span{max-width:none}
+ .card-grid,.mini-grid,.footer-grid,.calc-results{grid-template-columns:minmax(0,1fr)}
+ .calc-results{padding:24px}
+ .calc-results strong{font-size:clamp(22px,7vw,26px);overflow-wrap:anywhere}
+ .calc-note{grid-column:auto}
+ .calc-tab{padding:12px 10px}
+ .split-image{min-height:350px!important}
+ .motto{max-width:100%;font-size:18px;letter-spacing:.18em;padding:24px}
+ .split-copy{padding:48px 20px!important}
+ .feature-panel{padding:24px}
+ .page-enquiry .form-wrap{padding:24px 18px}
+ .form-grid{gap:18px}
+ input,select,textarea{font-size:16px}
+ .export-actions{display:grid;grid-template-columns:minmax(0,1fr)}
+ .export-actions .btn{width:100%}
+ .schedule-scroll{max-width:100%;-webkit-overflow-scrolling:touch}
+ .footer-brand{font-size:20px}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ *,*::before,*::after{transition:none!important;animation:none!important}
 }
