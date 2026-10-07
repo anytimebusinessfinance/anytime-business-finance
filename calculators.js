@@ -15,8 +15,7 @@ function loan(){
  let balance=result.financedAmount;rows=[];
  for(let i=1;i<=result.periods;i++){const open=balance,interest=flat?result.financeCharge/result.periods:open*rate,capital=i===result.periods?open:Math.min(open,Math.max(0,result.payment-interest));balance=Math.max(0,open-capital);rows.push([i,open,capital+interest,interest,capital,balance]);}
  $('loanPayment').textContent=money(result.payment);$('loanInterest').textContent=money(result.financeCharge);$('loanTotal').textContent=money(result.totalRepayable);details('loan',result);
- $('scheduleBody').innerHTML=rows.map(r=>'<tr>'+r.map((v,i)=>'<td>'+(i?money(v):v)+'</td>').join('')+'</tr>').join('');
-}
+ }
 function io(){const input=inputs('io',Math.max(0,num('ioAmount')),Math.max(1,Math.round(num('ioTerm'))),$('ioType').value),result=math.calculate(input),display=math.interestOnlyMonthlyDisplay(input,result);$('ioMonthlyLabel').textContent=display.label;$('ioMonthly').textContent=money(display.value);$('ioInterest').textContent=money(result.financeCharge);$('ioCapital').textContent=money(result.financedAmount);$('ioTotalLabel').textContent='Total payable including fee';$('ioTotal').textContent=money(result.totalRepayable);details('io',result);$('ioNote').textContent='Amount due at maturity: '+money(result.balloon)+'. Retained interest reduces the net advance available; rolled-up interest is paid at maturity. Entered fees are included in total cost.';}
 function dscr(){const cash=num('dscrEbitda')+num('dscrAdjust'),debt=Math.max(0,num('dscrExisting'))+Math.max(0,num('dscrProposed'));$('dscrCash').textContent=money(cash);$('dscrDebt').textContent=money(debt);$('dscrRatio').textContent=debt>0?(cash/debt).toFixed(2)+'x':'—'}
 function asset(){const cost=Math.max(0,num('assetCost')),deposit=Math.min(cost,Math.max(0,num('assetDeposit'))),result=math.calculate(inputs('asset',cost-deposit,Math.max(1,Math.round(num('assetTerm'))),'amortizing',12,num('assetBalloon')));$('assetFinanced').textContent=money(result.financedAmount);$('assetPayment').textContent=money(result.payment);$('assetInterest').textContent=money(result.financeCharge);$('assetTotal').textContent=money(deposit+result.totalRepayable);details('asset',result);}
@@ -37,6 +36,5 @@ function pdfIllustration(){
 }
 
 $('exportPdf')?.addEventListener('click',pdfIllustration);
-$('exportSchedule')?.addEventListener('click',()=>{const head=['Period','Opening Balance','Repayment','Interest','Capital','Closing Balance'];const assumptions=[['Loan amount',loanResult.principal],['Rate type',loanResult.mode],['Rate value',num('loanRate')],['Arrangement fee unit',$('loanFeeUnit').value],['Arrangement fee entered',num('loanFee')],['Arrangement fee GBP',loanResult.fees],['Fee treatment',$('loanFeeTreatment').value],['Interest basis',loanResult.interestBasis],['Net advance',loanResult.netAdvance],['Total payable including fee',loanResult.totalRepayable],['Total cost',loanResult.totalCost],[]];const csv=[...assumptions,head,...rows.map(r=>r.map((v,i)=>i?v.toFixed(2):v))].map(r=>r.join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ABF-amortisation-schedule.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)});
 loan();io();dscr();asset();
 })();
