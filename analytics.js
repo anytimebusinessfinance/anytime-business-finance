@@ -4,7 +4,7 @@
   const configured = /^G-[A-Z0-9]{6,}$/.test(id);
   const storageKey = 'abf-analytics-consent-v1';
   const lifetime = 180 * 24 * 60 * 60 * 1000;
-  const calculators = new Set(['loan', 'interest', 'dscr', 'asset']);
+  const calculators = new Set(['loan', 'interest', 'property', 'asset']);
   const modes = new Set(['annual_reducing', 'apr_effective', 'effective_yield', 'monthly_reducing', 'daily_reducing', 'flat_annual', 'flat_monthly', 'factor', 'term_yield']);
   const once = new Set();
   let consent = readConsent(), loaded = false, pageSent = false, dialog, returnFocus;
@@ -109,7 +109,7 @@
     const type = panel?.id.replace('calc-', '');
     if (!calculators.has(type)) return;
     sendOnce('calculator-use-' + type, 'calculator_use', {calculator_type: type});
-    if (event.type === 'change' && /^(loan|io|asset)Mode$/.test(event.target.id) && modes.has(event.target.value)) send('calculator_rate_select', {calculator_type: type, rate_type: event.target.value});
+    if (event.type === 'change' && /^(loan|io|property|asset)Mode$/.test(event.target.id) && modes.has(event.target.value)) send('calculator_rate_select', {calculator_type: type, rate_type: event.target.value});
   }
   document.addEventListener('input', calculatorUse);
   document.addEventListener('change', calculatorUse);

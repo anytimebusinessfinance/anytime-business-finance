@@ -26,10 +26,20 @@ function loan(){
  for(let i=1;i<=result.periods;i++){const open=balance,interest=flat?result.financeCharge/result.periods:open*rate,capital=i===result.periods?open:Math.min(open,Math.max(0,result.payment-interest));balance=Math.max(0,open-capital);rows.push([i,open,capital+interest,interest,capital,balance]);}
  $('loanPayment').textContent=money(result.payment);$('loanInterest').textContent=money(result.financeCharge);$('loanTotal').textContent=money(result.totalRepayable);details('loan',result);
  }
-function io(){const input=inputs('io',Math.max(0,num('ioAmount')),Math.max(1,Math.round(num('ioTerm'))),$('ioType').value),result=math.calculate(input),display=math.interestOnlyMonthlyDisplay(input,result);$('ioMonthlyLabel').textContent=display.label;$('ioMonthly').textContent=money(display.value);$('ioInterest').textContent=money(result.financeCharge);$('ioCapital').textContent=money(result.financedAmount);$('ioTotalLabel').textContent='Total payable including fee';$('ioTotal').textContent=money(result.totalRepayable);details('io',result);$('ioNote').textContent='Amount due at maturity: '+money(result.balloon)+'. Retained interest reduces the net advance available; rolled-up interest is paid at maturity. Entered fees are included in total cost.';}
-function dscr(){const cash=num('dscrEbitda')+num('dscrAdjust'),debt=Math.max(0,num('dscrExisting'))+Math.max(0,num('dscrProposed'));$('dscrCash').textContent=money(cash);$('dscrDebt').textContent=money(debt);$('dscrRatio').textContent=debt>0?(cash/debt).toFixed(2)+'x':'—'}
+function facility(prefix,style){
+ const input=inputs(prefix,Math.max(0,num(prefix+'Amount')),Math.max(1,Math.round(num(prefix+'Term'))),style),result=math.calculate(input),display=math.interestOnlyMonthlyDisplay(input,result);
+ $(prefix+'MonthlyLabel').textContent=style==='amortizing'?'Monthly repayment':display.label;
+ $(prefix+'Monthly').textContent=money(style==='amortizing'?result.payment:display.value);
+ $(prefix+'Interest').textContent=money(result.financeCharge);$(prefix+'Capital').textContent=money(result.financedAmount);
+ $(prefix+'TotalLabel').textContent='Total payable including fee';$(prefix+'Total').textContent=money(result.totalRepayable);details(prefix,result);
+ $(prefix+'Note').textContent=prefix==='io'
+  ? 'Drawn capital remaining: '+money(result.balloon)+'. Monthly payments cover interest only. The drawn balance must also be repaid under the facility terms. Interest is modelled on a constant drawn balance; entered fees are included.'
+  : 'Amount due at maturity: '+money(result.balloon)+'. '+(style==='amortizing'?'Regular repayments include capital and interest. ':style==='retained'?'Retained interest is deducted from the advance. ':style==='compound'?'Rolled-up interest is paid at maturity. ':'Capital is repaid at maturity. ')+'Entered fees are included in total cost.';
+}
+function io(){facility('io','serviced');}
+function property(){facility('property',$('propertyType').value);}
 function asset(){const cost=Math.max(0,num('assetCost')),deposit=Math.min(cost,Math.max(0,num('assetDeposit'))),result=math.calculate(inputs('asset',cost-deposit,Math.max(1,Math.round(num('assetTerm'))),'amortizing',12,num('assetBalloon')));$('assetFinanced').textContent=money(result.financedAmount);$('assetPayment').textContent=money(result.payment);$('assetInterest').textContent=money(result.financeCharge);$('assetTotal').textContent=money(deposit+result.totalRepayable);details('asset',result);}
-for(const [prefix,fn] of [['loan',loan],['io',io],['asset',asset]]){
+for(const [prefix,fn] of [['loan',loan],['io',io],['property',property],['asset',asset]]){
  const select=$(prefix+'Mode'),rate=$(prefix+'Rate');
  select.innerHTML=rateChoices.map(([value,label])=>'<option value="'+value+'">'+label+'</option>').join('');
  select.value='apr_effective';
@@ -51,7 +61,7 @@ for(const [prefix,fn] of [['loan',loan],['io',io],['asset',asset]]){
  $(prefix+'FeeUnit').addEventListener('input',()=>{$(prefix+'FeeLabel').textContent=$(prefix+'FeeUnit').value==='percent'?'Loan arrangement fee (% of loan amount)':'Loan arrangement fee (£)';});
  label();
 }
-[['loanAmount',loan],['loanRate',loan],['loanTerm',loan],['loanFrequency',loan],['ioAmount',io],['ioRate',io],['ioTerm',io],['ioType',io],['dscrEbitda',dscr],['dscrAdjust',dscr],['dscrExisting',dscr],['dscrProposed',dscr],['assetCost',asset],['assetDeposit',asset],['assetRate',asset],['assetTerm',asset],['assetBalloon',asset]].forEach(([id,fn])=>$(id)?.addEventListener('input',fn));
+[['loanAmount',loan],['loanRate',loan],['loanTerm',loan],['loanFrequency',loan],['ioAmount',io],['ioRate',io],['ioTerm',io],['propertyAmount',property],['propertyRate',property],['propertyTerm',property],['propertyType',property],['assetCost',asset],['assetDeposit',asset],['assetRate',asset],['assetTerm',asset],['assetBalloon',asset]].forEach(([id,fn])=>$(id)?.addEventListener('input',fn));
 
 function pdfIllustration(){
  if(!rows.length)return;
@@ -68,5 +78,5 @@ function pdfIllustration(){
 }
 
 $('exportPdf')?.addEventListener('click',pdfIllustration);
-loan();io();dscr();asset();
+loan();io();property();asset();
 })();

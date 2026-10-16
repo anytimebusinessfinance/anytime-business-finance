@@ -45,6 +45,12 @@ for(let i=0;i<3;i++) w.document.getElementById('loanAmount').dispatchEvent(new w
 assert.equal(events(w).filter(e=>e[1]==='calculator_use').length,1);
 const select=w.document.getElementById('loanMode');select.value='factor';select.dispatchEvent(new w.Event('change',{bubbles:true}));
 click(w,'.calc-tab[data-target="asset"]');
+click(w,'.calc-tab[data-target="property"]');
+w.document.getElementById('propertyAmount').dispatchEvent(new w.Event('input',{bubbles:true}));
+const propertyMode=w.document.getElementById('propertyMode');propertyMode.value='flat_monthly';propertyMode.dispatchEvent(new w.Event('change',{bubbles:true}));
+assert.ok(events(w).some(e=>e[1]==='calculator_open' && e[2].calculator_type==='property'));
+assert.ok(events(w).some(e=>e[1]==='calculator_use' && e[2].calculator_type==='property'));
+assert.ok(events(w).some(e=>e[1]==='calculator_rate_select' && e[2].calculator_type==='property' && e[2].rate_type==='flat_monthly'));
 click(w,'#exportPdf');
 w.ABFAnalytics.illustrationCreated();
 click(w,'a[href="mailto:sam@anytimebusinessfinance.co.uk"]');
