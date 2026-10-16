@@ -380,3 +380,6 @@ input,select,textarea{min-width:0;max-width:100%}
 
 /* Testimonials: scoped form controls and small-screen email actions. */
 .page-testimonials .review-permission{display:flex;gap:12px;align-items:flex-start;font-weight:400;font-size:14px;line-height:1.6}.page-testimonials .review-permission input{width:20px;height:20px;flex:0 0 20px;margin:3px 0 0}.page-testimonials #reviewFallback{margin-top:22px}.page-testimonials #reviewDraft{font-size:14px;overflow-wrap:anywhere}.page-testimonials .export-actions{flex-wrap:wrap;gap:12px}.page-testimonials #reviewStatus{font-size:14px;line-height:1.6}@media(max-width:650px){.page-testimonials .export-actions{display:flex;flex-direction:column}.page-testimonials .export-actions .btn{width:100%;white-space:normal}}
+
+/* Three-step funding process. */
+.next-steps{grid-template-columns:repeat(3,minmax(0,1fr))}.process .next-note{margin-top:28px;color:#cbd6e3;max-width:760px}@media(max-width:650px){.next-steps{grid-template-columns:minmax(0,1fr)}}
