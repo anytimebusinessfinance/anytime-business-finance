@@ -1,6 +1,16 @@
 (()=>{
 const $=id=>document.getElementById(id), money=n=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',minimumFractionDigits:2,maximumFractionDigits:2}).format(Number.isFinite(n)?n:0), num=id=>Number($(id)?.value)||0;
 document.querySelectorAll('.calc-tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.calc-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.calc-panel').forEach(x=>x.classList.remove('active'));b.classList.add('active');$('calc-'+b.dataset.target).classList.add('active')}));
+// Open the relevant calculator when arriving from a finance product page.
+function openLinkedCalculator(){
+ const target=location.hash.slice(1);
+ const panel=document.getElementById(target);
+ if(!panel || !panel.classList.contains('calc-panel')) return;
+ const button=[...document.querySelectorAll('.calc-tab')].find(b=>'calc-'+b.dataset.target===target);
+ if(button){button.click();panel.scrollIntoView({block:'start'});}
+}
+window.addEventListener('hashchange',openLinkedCalculator);
+openLinkedCalculator();
 let rows=[];
 const math=window.CRMRateMath;
 const rateChoices=[['apr_effective','APR'],['term_yield','Yield'],['factor','Factor rate'],['flat_monthly','Flat rate on original loan per month']];
