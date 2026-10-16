@@ -1,6 +1,6 @@
 (function (root) {
   'use strict';
-  const MODES = [
+  const LEGACY_MODES = [
     ['annual_reducing', 'Annual reducing balance (% p.a.)'],
     ['apr_effective', 'APR (effective annual rate, before entered fees) (%)'],
     ['effective_yield', 'Effective annual yield (%)'],
@@ -11,12 +11,31 @@
     ['factor', 'Factor rate (total repay multiple, e.g. 1.2)'],
     ['term_yield', 'Yield / total interest over full term (%)']
   ];
+  // Keep APR as the default while exposing every supported quoted rate basis.
+  const MODES = [LEGACY_MODES[1], ...LEGACY_MODES.filter(mode => mode[0] !== 'apr_effective')];
+  function setRateSelection(select, value) {
+    if (!select) return;
+    select.querySelectorAll('[data-saved-rate]').forEach(option => option.remove());
+    if (![...select.options].some(option => option.value === value)) {
+      const option = select.ownerDocument.createElement('option');
+      option.value = value;
+      option.textContent = 'Saved rate: ' + (LEGACY_MODES.find(mode => mode[0] === value)?.[1] || (value === 'other' ? 'Text as quoted' : value));
+      option.setAttribute('data-saved-rate', 'true');
+      select.appendChild(option);
+    }
+    select.value = value;
+  }
   const STYLES = [
     ['amortizing', 'Monthly amortising (principal + interest)'],
     ['serviced', 'Interest serviced monthly; principal at maturity'],
     ['retained', 'Simple interest retained; principal at maturity'],
     ['compound', 'Interest rolled up with monthly compounding']
   ];
+  function feeAmount(amount, value, type) {
+    const quoted = Math.max(0, Number(String(value ?? '').replace(/[^0-9.-]/g, '')) || 0);
+    return type === 'percent' || (!type && String(value).includes('%'))
+      ? Math.round(Math.max(0, Number(amount) || 0) * quoted) / 100 : quoted;
+  }
   function periodRate(value, mode, periodsPerYear) {
     const x = Math.max(0, Number(value) || 0) / 100;
     if (mode === 'annual_reducing') return x / periodsPerYear;
@@ -59,7 +78,7 @@
     const mode = input.mode || 'annual_reducing';
     const style = input.style || 'amortizing';
     const quote = Math.max(0, Number(input.rate) || 0);
-    const fee = Math.max(0, Number(input.fees) || 0);
+    const fee = feeAmount(principal, input.fees, input.feeType);
     const financedFees = input.feeTreatment === 'financed' ? fee : 0;
     const upfrontFees = fee - financedFees;
     const balance = principal + financedFees;
@@ -88,7 +107,7 @@
         totalRepayments = charge + balance;
       } else if (style === 'retained') {
         financeCharge = charge;
-        balloon = balance + charge;
+        balloon = balance;
         totalRepayments = balloon;
       } else {
         financeCharge = charge;
@@ -111,7 +130,7 @@
     } else if (style === 'retained') {
       const r = periodRate(quote, mode, frequency);
       financeCharge = interestPrincipal * r * periods;
-      balloon = balance + financeCharge;
+      balloon = balance;
       totalRepayments = balloon;
     } else {
       const r = periodRate(quote, mode, frequency);
@@ -120,13 +139,11 @@
       totalRepayments = balloon;
     }
     const suppliedPayment = Number(input.monthlyPayment) || 0;
-    if (suppliedPayment > 0) {
+    if (suppliedPayment > 0 && ['amortizing','serviced'].includes(style)) {
       payment = suppliedPayment;
       totalRepayments = suppliedPayment * periods + (style === 'serviced' ? balloon : style === 'amortizing' ? balloonTarget : 0);
-      if (style === 'amortizing') {
-        balloon = balloonTarget;
-        financeCharge = totalRepayments - balance;
-      }
+      if (style === 'amortizing') balloon = balloonTarget;
+      financeCharge = totalRepayments - balance;
     }
     const netAdvance = Math.max(0, principal - upfrontFees - (style === 'retained' ? financeCharge : 0));
     const cashflows = Array(periods).fill(0);
@@ -137,10 +154,10 @@
     if (style === 'amortizing' && balloon > 0) cashflows[periods - 1] += balloon;
     const annualized = irrAnnualized(netAdvance, cashflows, frequency);
     const totalRepayable = totalRepayments + upfrontFees;
-    const totalCost = totalRepayable - principal;
+    const totalCost = totalRepayments - netAdvance;
     return { principal, financedAmount: balance, interestPrincipal, interestBasis, periods, mode, style, payment, balloon, totalRepayments, totalRepayable, totalAmountPayable: totalRepayable, financeCharge, fees: fee, financedFees, upfrontFees, netAdvance, totalCost, annualizedAnnual: annualized };
   }
-  const api = { MODES, STYLES, periodRate, annuity, calculate, interestOnlyMonthlyDisplay };
+  const api = { MODES, LEGACY_MODES, setRateSelection, STYLES, feeAmount, periodRate, annuity, calculate, interestOnlyMonthlyDisplay };
   root.CRMRateMath = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
