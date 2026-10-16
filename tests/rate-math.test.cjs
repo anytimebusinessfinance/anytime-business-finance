@@ -23,10 +23,10 @@ near(x.payment, 1000); near(x.balloon, 100000); near(x.totalRepayments, 112000);
 x = RM.calculate({ amount: 100000, rate: 12, mode: 'annual_reducing', style: 'retained', termMonths: 12 });
 near(x.financeCharge, 12000); near(x.balloon, 100000); near(x.netAdvance, 88000);
 const retainedDisplay = RM.interestOnlyMonthlyDisplay({ amount: 100000, rate: 12, mode: 'annual_reducing', style: 'retained', termMonths: 12 }, x);
-assert.equal(retainedDisplay.label, 'Interest retained per month'); near(retainedDisplay.value, 1000);
+assert.equal(retainedDisplay.label, 'Average monthly retained interest (not a payment)'); near(retainedDisplay.value, 1000);
 const factorRollup = RM.calculate({ amount: 100000, rate: 1.2, mode: 'factor', style: 'compound', termMonths: 12 });
 const factorDisplay = RM.interestOnlyMonthlyDisplay({ amount: 100000, rate: 1.2, mode: 'factor', style: 'compound', termMonths: 12 }, factorRollup);
-assert.equal(factorDisplay.label, 'Monthly allocated charge'); near(factorDisplay.value, 20000 / 12);
+assert.equal(factorDisplay.label, 'Average monthly charge (not a payment)'); near(factorDisplay.value, 20000 / 12);
 x = RM.calculate({ amount: 100000, rate: 12, mode: 'annual_reducing', style: 'compound', termMonths: 12 });
 near(x.balloon, 112682.503); assert.ok(x.annualizedAnnual > 0);
 x = RM.calculate({ amount: 100000, rate: 12, mode: 'apr_effective', termMonths: 12 });
@@ -53,7 +53,7 @@ console.log('Rate math tests passed');
 // Percentage quotes must match their cash equivalent across every supported rate/style.
 for (const [mode] of RM.MODES) for (const [style] of RM.STYLES) {
   for (const feeTreatment of ['upfront','financed']) for (const interestBasis of ['gross','net']) {
-    const terms={amount:100000,rate:mode==='factor'?1.2:8,mode,style,termMonths:24,feeTreatment,interestBasis};
+    const terms={amount:100000,rate:mode==='factor'?1.2:mode==='daily_reducing'?0.03:['monthly_reducing','flat_monthly'].includes(mode)?0.5:8,mode,style,termMonths:24,feeTreatment,interestBasis};
     const percent=RM.calculate({...terms,fees:2,feeType:'percent'});
     const cash=RM.calculate({...terms,fees:2000,feeType:'fixed'});
     for(const key of ['fees','payment','netAdvance','financedAmount','interestPrincipal','totalRepayable','totalCost']) near(percent[key],cash[key]);

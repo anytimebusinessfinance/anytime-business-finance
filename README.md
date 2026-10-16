@@ -1,6 +1,9 @@
 # Anytime Business Finance — Premium Redesign
 Premium navy/gold static site prepared for GitHub Pages preview.
-The enquiry form is preview-only on GitHub Pages. Production submission handling should be configured on the final PHP-capable host.
+GitHub Pages cannot process the PHP enquiry handler. The preview therefore shows
+an email contact link and keeps the form hidden, instead of claiming that an
+enquiry was received. The form uses POST for a future PHP-capable host; reveal it
+only after configuring and testing actual delivery on that host.
 
 ## Website analytics activation
 
@@ -39,7 +42,6 @@ Before enabling the ID:
 | `enquiry_submit_attempt` | Valid form submission attempted; not proof of delivery |
 | `generate_lead` | Reserved for confirmed backend receipt at go-live |
 
-The existing preview enquiry form and its delivery behaviour are unchanged.
 Do not count visits to `thank-you.html` as delivered enquiries. At go-live, call
 `window.ABFAnalytics?.enquiryReceived()` only after the backend confirms receipt.
 Register `generate_lead` as a key event only after this integration is verified.
@@ -49,13 +51,50 @@ They do not carry amounts, typed rates, fees, contact information or form text.
 Page URLs exclude query strings/fragments, and referrers are reduced to origins.
 No CRM integration or report dashboard has been configured by this change.
 
-## Calculator parity
+## Calculator mathematics
 
-`rate-math.js` is aligned with the CRM calculation module as of 17 October 2026
-(source revision `4d4654431406be601f42d4df2c70c890bdb2d968`). All nine CRM rate
-bases are available in the loan, interest-only and asset finance calculators.
-This includes the CRM's retained-interest treatment, which deducts interest from
-the advance without adding it again to principal repayable at maturity.
+All nine quoted rate bases are available in the business loan, revolving credit,
+property and asset calculators. The original CRM-derived module (blob
+`4d4654431406be601f42d4df2c70c890bdb2d968`) has been corrected by the website audit;
+do not assume unchanged parity with an external CRM.
+
+- Nominal annual interest is divided by the payment frequency. Annual effective,
+  monthly and daily interest quotes are compounded into the payment period.
+  Daily quotes use 365 days per year and equal periods, not actual calendar dates.
+- Reducing-balance repayments follow an annuity with payments at period end.
+  The asset balloon is an additional payment with the final regular instalment.
+  Flat annual/monthly, factor and full-term yield quotes specify total charges;
+  those charges are not compounded again for a rolled-up facility.
+- Percentage fees apply to the requested advance (asset cost less deposit for
+  asset finance). Financed fees increase the debt. Upfront fees reduce proceeds.
+  The optional net interest basis excludes upfront and financed fees; retained
+  interest is not deducted from that interest basis.
+- Retained interest reduces cash proceeds and is included in total payable as
+  an upfront charge. It is not added to the principal due at maturity. For
+  example, £100,000 at 12% nominal annual interest retained for 12 months, with
+  a £1,000 upfront fee, has £87,000 net proceeds, £100,000 due at maturity,
+  £13,000 total cost and £113,000 total payable including the withheld charges.
+- Total cost is interest plus the entered fee. Total payable is the original
+  advance plus total cost (plus deposit for the asset purchase total). Monthly
+  retained/rolled-up interest figures are labelled as allocations, not payments.
+- The legacy `apr_effective` mode ID remains compatible, but its label now says
+  **annual effective interest rate before fees**. A fee-inclusive lender APR
+  cannot be used as the underlying interest rate and then charged fees again.
+- Invalid, non-finite or incomplete values show an error and clear the results.
+  Terms are whole months from 1 to 600; quarterly terms must be multiples of
+  three. Deposits and balloons cannot exceed their relevant balances. Retained
+  interest and upfront fees must leave positive proceeds. No quoted term or
+  balloon is silently rewritten.
+- Calculations retain full precision, using stable near-zero rate formulas.
+  Display and illustration amounts are rounded to pennies; displayed rows can
+  differ slightly from totals, and actual lenders may adjust final payments.
+
+Reference conventions: [Microsoft PMT documentation](https://support.microsoft.com/en-US/Excel/pmt-function)
+and [MoneyHelper on borrowing interest and arrangement fees](https://www.moneyhelper.org.uk/en/everyday-money/credit/managing-credit-well).
+
 Run `npm ci` then `npm test` for the calculation, calculator UI and consent checks.
 The website UI and consent tests use `jsdom` (`ABF_TEST_JSDOM` can also point to an
-existing installed module).
+existing installed module). The audit suite checks 288 combinations of rate,
+repayment style, payment frequency, fee treatment and interest basis using
+independent balance recurrences and discounted cash flows, plus invalid inputs,
+near-zero rates, high yields, retained totals, asset balloons, and illustrations.
