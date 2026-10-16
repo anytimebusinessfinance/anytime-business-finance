@@ -2,7 +2,7 @@
   'use strict';
   const LEGACY_MODES = [
     ['annual_reducing', 'Annual reducing balance (% p.a.)'],
-    ['apr_effective', 'APR (effective annual rate, before entered fees) (%)'],
+    ['apr_effective', 'Annual effective interest rate (before fees) (%)'],
     ['effective_yield', 'Effective annual yield (%)'],
     ['monthly_reducing', 'Monthly reducing balance (% per month)'],
     ['daily_reducing', 'Daily reducing balance (% per day)'],
@@ -11,7 +11,7 @@
     ['factor', 'Factor rate (total repay multiple, e.g. 1.2)'],
     ['term_yield', 'Yield / total interest over full term (%)']
   ];
-  // Keep APR as the default while exposing every supported quoted rate basis.
+  // Preserve the stored mode ID; this input is an interest rate, not a fee-inclusive APR.
   const MODES = [LEGACY_MODES[1], ...LEGACY_MODES.filter(mode => mode[0] !== 'apr_effective')];
   function setRateSelection(select, value) {
     if (!select) return;
@@ -32,68 +32,87 @@
     ['compound', 'Interest rolled up with monthly compounding']
   ];
   function feeAmount(amount, value, type) {
-    const quoted = Math.max(0, Number(String(value ?? '').replace(/[^0-9.-]/g, '')) || 0);
+    const quoted = Math.max(0, Number(String(value ?? '').replace(/[£,%\s]/g, '')) || 0);
     return type === 'percent' || (!type && String(value).includes('%'))
       ? Math.round(Math.max(0, Number(amount) || 0) * quoted) / 100 : quoted;
   }
   function periodRate(value, mode, periodsPerYear) {
     const x = Math.max(0, Number(value) || 0) / 100;
     if (mode === 'annual_reducing') return x / periodsPerYear;
-    if (mode === 'apr_effective' || mode === 'effective_yield') return Math.pow(1 + x, 1 / periodsPerYear) - 1;
-    if (mode === 'monthly_reducing') return Math.pow(1 + x, 12 / periodsPerYear) - 1;
-    if (mode === 'daily_reducing') return Math.pow(1 + x, 365 / periodsPerYear) - 1;
+    if (mode === 'apr_effective' || mode === 'effective_yield') return Math.expm1(Math.log1p(x) / periodsPerYear);
+    if (mode === 'monthly_reducing') return Math.expm1(Math.log1p(x) * 12 / periodsPerYear);
+    if (mode === 'daily_reducing') return Math.expm1(Math.log1p(x) * 365 / periodsPerYear);
     return 0;
   }
   function annuity(principal, rate, periods) {
-    return rate === 0 ? principal / periods : principal * rate / (1 - Math.pow(1 + rate, -periods));
+    return rate === 0 ? principal / periods : principal * rate / -Math.expm1(-periods * Math.log1p(rate));
   }
   function interestOnlyMonthlyDisplay(input, result) {
     const term = Math.max(1, Math.round(Number(input.termMonths) || 1));
     const style = input.style || 'serviced';
     const mode = input.mode || 'annual_reducing';
     const allocatedModes = ['flat_annual', 'flat_monthly', 'factor', 'term_yield'];
-    if (style === 'retained') return {label:'Interest retained per month', value:result.financeCharge / term};
-    if (style === 'compound' && allocatedModes.includes(mode)) return {label:'Monthly allocated charge', value:result.financeCharge / term};
+    if (style === 'retained') return {label:'Average monthly retained interest (not a payment)', value:result.financeCharge / term};
+    if (style === 'compound' && allocatedModes.includes(mode)) return {label:'Average monthly charge (not a payment)', value:result.financeCharge / term};
     if (style === 'compound') {
-      const frequency = Math.max(1, Number(input.frequency) || 12);
-      return {label:'Month 1 interest', value:result.interestPrincipal * periodRate(input.rate, mode, frequency)};
+      return {label:'Month 1 interest (not a payment)', value:result.interestPrincipal * periodRate(input.rate, mode, 12)};
     }
     return {label:'Monthly interest', value:result.payment};
   }
   function irrAnnualized(netAdvance, cashflows, periodsPerYear) {
     if (!(netAdvance > 0) || !cashflows.some(x => x > 0)) return null;
-    let lo = 0, hi = 10;
+    const sum = cashflows.reduce((a, b) => a + b, 0);
+    if (Math.abs(sum - netAdvance) <= Number.EPSILON * Math.max(sum, netAdvance) * cashflows.length) return 0;
+    if (sum < netAdvance) return null;
+    const presentValue = rate => cashflows.reduce((pv, cf, index) => pv + cf * Math.exp(-(index + 1) * Math.log1p(rate)), 0);
+    let lo = 0, hi = 1;
+    while (presentValue(hi) > netAdvance && Number.isFinite(hi * 2)) hi *= 2;
+    if (presentValue(hi) > netAdvance) return null;
     for (let i = 0; i < 100; i++) {
       const mid = (lo + hi) / 2;
-      let pv = 0;
-      cashflows.forEach((cf, index) => { pv += cf / Math.pow(1 + mid, index + 1); });
+      const pv = presentValue(mid);
       if (pv > netAdvance) lo = mid; else hi = mid;
     }
-    return Math.pow(1 + (lo + hi) / 2, periodsPerYear) - 1;
+    const annualized = Math.expm1(Math.log1p((lo + hi) / 2) * periodsPerYear);
+    return Number.isFinite(annualized) ? annualized : null;
+  }
+  function number(value, fallback, label) {
+    const n = Number(value ?? fallback);
+    if (value === '' || !Number.isFinite(n) || n < 0) throw new RangeError(label + ' must be a finite, non-negative number.');
+    return n;
   }
   function calculate(input) {
-    const principal = Math.max(0, Number(input.amount) || 0);
-    const frequency = Math.max(1, Number(input.frequency) || 12);
-    const periods = Math.max(1, Math.round((Number(input.termMonths) || 1) * frequency / 12));
+    const principal = number(input.amount, 0, 'Amount');
+    const frequency = number(input.frequency, 12, 'Payment frequency');
+    const term = number(input.termMonths, 1, 'Term');
+    const periods = term * frequency / 12;
+    if (!Number.isInteger(term) || term < 1 || term > 600) throw new RangeError('Enter a whole number of months from 1 to 600.');
+    if (!Number.isInteger(frequency) || frequency < 1 || frequency > 365 || !Number.isInteger(periods) || periods < 1) throw new RangeError('Term must contain a whole number of repayment periods; quarterly terms must be a multiple of 3 months.');
     const mode = input.mode || 'annual_reducing';
     const style = input.style || 'amortizing';
-    const quote = Math.max(0, Number(input.rate) || 0);
+    if (!MODES.some(([id]) => id === mode) || !STYLES.some(([id]) => id === style)) throw new RangeError('Choose a supported rate and repayment type.');
+    const quote = number(input.rate, 0, 'Rate');
+    if (mode === 'factor' && quote < 1) throw new RangeError('Factor rate must be at least 1.');
+    const feeQuote = String(input.fees ?? 0).replace(/[£,%\s]/g, '');
+    number(feeQuote, 0, 'Arrangement fee');
     const fee = feeAmount(principal, input.fees, input.feeType);
     const financedFees = input.feeTreatment === 'financed' ? fee : 0;
     const upfrontFees = fee - financedFees;
     const balance = principal + financedFees;
+    if (upfrontFees > 0 && upfrontFees >= principal) throw new RangeError('Upfront fee must be less than the advance.');
     const interestBasis = input.interestBasis === 'net' ? 'net' : 'gross';
     const interestPrincipal = interestBasis === 'net'
       ? Math.max(0, principal - upfrontFees)
       : balance;
     const interestScale = balance > 0 ? interestPrincipal / balance : 0;
-    const balloonTarget = Math.min(balance, Math.max(0, Number(input.balloon) || 0));
+    const balloonTarget = number(input.balloon, 0, 'Balloon');
+    if (balloonTarget > balance) throw new RangeError('Balloon must not exceed the financed balance.');
     let payment = 0, totalRepayments = 0, financeCharge = 0, balloon = 0;
     if (mode === 'factor' || mode === 'term_yield' || mode === 'flat_annual' || mode === 'flat_monthly') {
       const charge = mode === 'factor'
         ? interestPrincipal * Math.max(0, quote - 1)
         : mode === 'term_yield' ? interestPrincipal * quote / 100
-          : mode === 'flat_monthly' ? interestPrincipal * quote / 100 * Math.max(1, Number(input.termMonths) || 1)
+          : mode === 'flat_monthly' ? interestPrincipal * quote / 100 * term
             : interestPrincipal * quote / 100 * periods / frequency;
       if (style === 'amortizing') {
         balloon = balloonTarget;
@@ -117,10 +136,9 @@
     } else if (style === 'amortizing') {
       const r = periodRate(quote, mode, frequency) * interestScale;
       balloon = balloonTarget;
-      const presentValueBalloon = balloon / Math.pow(1 + r, periods);
-      payment = annuity(Math.max(0, balance - presentValueBalloon), r, periods);
+      payment = annuity(balance - balloon, r, periods) + balloon * r;
       totalRepayments = payment * periods + balloon;
-      financeCharge = totalRepayments - balance;
+      financeCharge = Math.max(0, totalRepayments - balance);
     } else if (style === 'serviced') {
       const r = periodRate(quote, mode, frequency);
       payment = interestPrincipal * r;
@@ -134,18 +152,22 @@
       totalRepayments = balloon;
     } else {
       const r = periodRate(quote, mode, frequency);
-      balloon = balance + interestPrincipal * (Math.pow(1 + r, periods) - 1);
+      balloon = balance + interestPrincipal * Math.expm1(periods * Math.log1p(r));
       financeCharge = balloon - balance;
       totalRepayments = balloon;
     }
-    const suppliedPayment = Number(input.monthlyPayment) || 0;
+    const suppliedPayment = number(input.monthlyPayment, 0, 'Supplied payment');
     if (suppliedPayment > 0 && ['amortizing','serviced'].includes(style)) {
       payment = suppliedPayment;
       totalRepayments = suppliedPayment * periods + (style === 'serviced' ? balloon : style === 'amortizing' ? balloonTarget : 0);
       if (style === 'amortizing') balloon = balloonTarget;
       financeCharge = totalRepayments - balance;
+      if (financeCharge < 0) throw new RangeError('Supplied payments do not repay the financed balance and balloon.');
     }
-    const netAdvance = Math.max(0, principal - upfrontFees - (style === 'retained' ? financeCharge : 0));
+    const retainedInterest = style === 'retained' ? financeCharge : 0;
+    const netAdvance = principal - upfrontFees - retainedInterest;
+    if (retainedInterest > 0 && netAdvance <= Math.max(1, principal) * Number.EPSILON * 32) throw new RangeError('Retained interest and upfront fees must leave a positive net advance.');
+    if (![balance, payment, balloon, financeCharge, totalRepayments, netAdvance].every(Number.isFinite)) throw new RangeError('These figures exceed the calculation range; reduce the amount, rate or term.');
     const cashflows = Array(periods).fill(0);
     if (style === 'amortizing' || style === 'serviced') cashflows.fill(payment);
     if (style === 'serviced') cashflows[periods - 1] += balloon;
@@ -153,9 +175,11 @@
     if (style === 'amortizing' && suppliedPayment > 0) cashflows.fill(suppliedPayment);
     if (style === 'amortizing' && balloon > 0) cashflows[periods - 1] += balloon;
     const annualized = irrAnnualized(netAdvance, cashflows, frequency);
-    const totalRepayable = totalRepayments + upfrontFees;
-    const totalCost = totalRepayments - netAdvance;
-    return { principal, financedAmount: balance, interestPrincipal, interestBasis, periods, mode, style, payment, balloon, totalRepayments, totalRepayable, totalAmountPayable: totalRepayable, financeCharge, fees: fee, financedFees, upfrontFees, netAdvance, totalCost, annualizedAnnual: annualized };
+    // Total payable includes charges withheld at drawdown, as well as later repayments.
+    const totalRepayable = totalRepayments + upfrontFees + retainedInterest;
+    const totalCost = financeCharge + fee;
+    if (![totalRepayable, totalCost].every(Number.isFinite)) throw new RangeError('These totals exceed the calculation range.');
+    return { principal, financedAmount: balance, interestPrincipal, interestBasis, periods, mode, style, payment, balloon, totalRepayments, totalRepayable, totalAmountPayable: totalRepayable, financeCharge, retainedInterest, fees: fee, financedFees, upfrontFees, netAdvance, totalCost, annualizedAnnual: annualized };
   }
   const api = { MODES, LEGACY_MODES, setRateSelection, STYLES, feeAmount, periodRate, annuity, calculate, interestOnlyMonthlyDisplay };
   root.CRMRateMath = api;

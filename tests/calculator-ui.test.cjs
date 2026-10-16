@@ -36,7 +36,7 @@ assert.equal(w.document.getElementById('ioInterest').textContent,'£6,000.00');
 assert.match(w.document.getElementById('ioNote').textContent,/remaining: £50,000.00/);
 fill({propertyMode:'annual_reducing',propertyAmount:100000,propertyRate:12,propertyTerm:12,propertyFee:0,propertyType:'amortizing'});
 assert.equal(w.document.getElementById('propertyMonthly').textContent,'£8,884.88');
-assert.match(w.document.getElementById('propertyNote').textContent,/maturity: £0.00/);
+assert.match(w.document.getElementById('propertyNote').textContent,/Balance after final repayment: £0.00/);
 fill({propertyType:'serviced'});
 assert.equal(w.document.getElementById('propertyMonthly').textContent,'£1,000.00');
 fill({propertyType:'compound'});

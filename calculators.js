@@ -1,5 +1,5 @@
 (()=>{
-const $=id=>document.getElementById(id), money=n=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',minimumFractionDigits:2,maximumFractionDigits:2}).format(Number.isFinite(n)?n:0), num=id=>Number($(id)?.value)||0;
+const $=id=>document.getElementById(id), money=n=>Number.isFinite(n)?new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',minimumFractionDigits:2,maximumFractionDigits:2}).format(n):'—', num=id=>Number($(id)?.value);
 document.querySelectorAll('.calc-tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.calc-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.calc-panel').forEach(x=>x.classList.remove('active'));b.classList.add('active');$('calc-'+b.dataset.target).classList.add('active')}));
 // Open the relevant calculator when arriving from a finance product page.
 function openLinkedCalculator(){
@@ -17,28 +17,59 @@ const rateChoices=math.MODES;
 const rateLabels=Object.fromEntries(math.MODES);
 function inputs(prefix,amount,term,style='amortizing',frequency=12,balloon=0){return {amount,termMonths:term,style,frequency,balloon,rate:Math.max(0,num(prefix+'Rate')),mode:$(prefix+'Mode').value,fees:Math.max(0,num(prefix+'Fee')),feeType:$(prefix+'FeeUnit').value==='percent'?'percent':'fixed',feeTreatment:$(prefix+'FeeTreatment').value,interestBasis:$(prefix+'Basis').value};}
 function details(prefix,result){$(prefix+'TotalCost').textContent=money(result.totalCost);$(prefix+'Net').textContent=money(result.netAdvance);}
+function guarded(prefix,calculate){
+ const panel=$('calc-'+({io:'interest'}[prefix]||prefix)),error=document.createElement('p');
+ error.className='calc-error';error.id=prefix+'Error';error.setAttribute('role','status');error.setAttribute('aria-live','polite');error.hidden=true;panel.prepend(error);
+ return ()=>{
+  panel.querySelectorAll('input').forEach(e=>{e.removeAttribute('aria-invalid');e.setAttribute('aria-describedby',error.id);});
+  try{
+   for(const e of panel.querySelectorAll('input')){
+    const value=Number(e.value),label=e.closest('label').textContent.trim();
+    let message='';
+    if(e.value.trim()===''||!Number.isFinite(value))message='Enter a number for '+label+'.';
+    else if(e.min!==''&&value<Number(e.min))message=label+' must be at least '+e.min+'.';
+    else if(e.max!==''&&value>Number(e.max))message=label+' must not exceed '+e.max+'.';
+    else if(e.id.endsWith('Term')&&!Number.isInteger(value))message='Enter a whole number of months.';
+    if(message){e.setAttribute('aria-invalid','true');throw new RangeError(message);}
+   }
+   calculate();error.textContent='';error.hidden=true;
+   if(prefix==='loan')$('exportPdf').disabled=false;
+  }catch(e){
+   if(!(e instanceof RangeError))throw e;
+   panel.querySelectorAll('.calc-results strong').forEach(el=>el.textContent='—');
+   const note=$(prefix+'Note');if(note)note.textContent='';
+   error.textContent=e.message;error.hidden=false;
+   if(prefix==='loan'){rows=[];loanResult=null;$('exportPdf').disabled=true;}
+  }
+ };
+}
 let loanResult;
-function loan(){
- const freq=Number($('loanFrequency').value),raw=Math.max(1,Math.round(num('loanTerm'))),months=freq===4?Math.max(3,Math.round(raw/3)*3):raw;if(months!==raw)$('loanTerm').value=months;
- const input=inputs('loan',Math.max(0,num('loanAmount')),months,'amortizing',freq),result=math.calculate(input);loanResult=result;
+function calculateLoan(){
+ const freq=Number($('loanFrequency').value),months=num('loanTerm');
+ const input=inputs('loan',num('loanAmount'),months,'amortizing',freq),result=math.calculate(input);loanResult=result;
  const flat=['flat_annual','flat_monthly','factor','term_yield'].includes(input.mode),rate=math.periodRate(input.rate,input.mode,freq)*(result.financedAmount?result.interestPrincipal/result.financedAmount:0);
  let balance=result.financedAmount;rows=[];
  for(let i=1;i<=result.periods;i++){const open=balance,interest=flat?result.financeCharge/result.periods:open*rate,capital=i===result.periods?open:Math.min(open,Math.max(0,result.payment-interest));balance=Math.max(0,open-capital);rows.push([i,open,capital+interest,interest,capital,balance]);}
  $('loanPayment').textContent=money(result.payment);$('loanInterest').textContent=money(result.financeCharge);$('loanTotal').textContent=money(result.totalRepayable);details('loan',result);
  }
 function facility(prefix,style){
- const input=inputs(prefix,Math.max(0,num(prefix+'Amount')),Math.max(1,Math.round(num(prefix+'Term'))),style),result=math.calculate(input),display=math.interestOnlyMonthlyDisplay(input,result);
+ const input=inputs(prefix,num(prefix+'Amount'),num(prefix+'Term'),style),result=math.calculate(input),display=math.interestOnlyMonthlyDisplay(input,result);
  $(prefix+'MonthlyLabel').textContent=style==='amortizing'?'Monthly repayment':display.label;
  $(prefix+'Monthly').textContent=money(style==='amortizing'?result.payment:display.value);
  $(prefix+'Interest').textContent=money(result.financeCharge);$(prefix+'Capital').textContent=money(result.financedAmount);
- $(prefix+'TotalLabel').textContent='Total payable including fee';$(prefix+'Total').textContent=money(result.totalRepayable);details(prefix,result);
+ $(prefix+'TotalLabel').textContent=style==='retained'?'Total payable incl. retained interest and fee':'Total payable including fee';$(prefix+'Total').textContent=money(result.totalRepayable);details(prefix,result);
  $(prefix+'Note').textContent=prefix==='io'
   ? 'Drawn capital remaining: '+money(result.balloon)+'. Monthly payments cover interest only. The drawn balance must also be repaid under the facility terms. Interest is modelled on a constant drawn balance; entered fees are included.'
-  : 'Amount due at maturity: '+money(result.balloon)+'. '+(style==='amortizing'?'Regular repayments include capital and interest. ':style==='retained'?'Retained interest is deducted from the advance. ':style==='compound'?'Rolled-up interest is paid at maturity. ':'Capital is repaid at maturity. ')+'Entered fees are included in total cost.';
+  : (style==='amortizing'?'Balance after final repayment: ':'Amount due at maturity: ')+money(result.balloon)+'. '+(style==='amortizing'?'The final regular repayment is still payable in the last month. ':style==='retained'?'No monthly payments: '+money(result.retainedInterest)+' interest is withheld at drawdown and included in total payable, not charged again at maturity. ':style==='compound'?'No monthly payments: interest is paid at maturity. Flat, factor and full-term quotes specify a fixed total charge; only reducing-rate quotes compound. ':'Capital is repaid with the last monthly interest payment. ')+'Entered fees are included in total cost.';
 }
-function io(){facility('io','serviced');}
-function property(){facility('property',$('propertyType').value);}
-function asset(){const cost=Math.max(0,num('assetCost')),deposit=Math.min(cost,Math.max(0,num('assetDeposit'))),result=math.calculate(inputs('asset',cost-deposit,Math.max(1,Math.round(num('assetTerm'))),'amortizing',12,num('assetBalloon')));$('assetFinanced').textContent=money(result.financedAmount);$('assetPayment').textContent=money(result.payment);$('assetInterest').textContent=money(result.financeCharge);$('assetTotal').textContent=money(deposit+result.totalRepayable);details('asset',result);}
+function calculateAsset(){
+ const cost=num('assetCost'),deposit=num('assetDeposit');
+ if(deposit>cost)throw new RangeError('Deposit must not exceed the asset cost.');
+ const result=math.calculate(inputs('asset',cost-deposit,num('assetTerm'),'amortizing',12,num('assetBalloon')));
+ $('assetFinanced').textContent=money(result.financedAmount);$('assetPayment').textContent=money(result.payment);$('assetInterest').textContent=money(result.financeCharge);$('assetTotal').textContent=money(deposit+result.totalRepayable);details('asset',result);
+ $('assetNote').textContent='Balloon due with the final monthly repayment: '+money(result.balloon)+'. Percentage fees apply to the asset cost less deposit. The deposit buys the asset and is excluded from the cost of borrowing.';
+}
+const loan=guarded('loan',calculateLoan),io=guarded('io',()=>facility('io','serviced')),property=guarded('property',()=>facility('property',$('propertyType').value)),asset=guarded('asset',calculateAsset);
 for(const [prefix,fn] of [['loan',loan],['io',io],['property',property],['asset',asset]]){
  const select=$(prefix+'Mode'),rate=$(prefix+'Rate');
  select.innerHTML=rateChoices.map(([value,label])=>'<option value="'+value+'">'+label+'</option>').join('');
@@ -64,15 +95,16 @@ for(const [prefix,fn] of [['loan',loan],['io',io],['property',property],['asset'
 [['loanAmount',loan],['loanRate',loan],['loanTerm',loan],['loanFrequency',loan],['ioAmount',io],['ioRate',io],['ioTerm',io],['propertyAmount',property],['propertyRate',property],['propertyTerm',property],['propertyType',property],['assetCost',asset],['assetDeposit',asset],['assetRate',asset],['assetTerm',asset],['assetBalloon',asset]].forEach(([id,fn])=>$(id)?.addEventListener('input',fn));
 
 function pdfIllustration(){
- if(!rows.length)return;
+ if(!rows.length||!loanResult)return;
  const amount=Math.max(0,num('loanAmount')), rate=Math.max(0,num('loanRate')), months=Math.max(1,Math.round(num('loanTerm'))), frequency=$('loanFrequency').options[$('loanFrequency').selectedIndex].text;
  const repayment=$('loanPayment').textContent,totalInterest=$('loanInterest').textContent,total=$('loanTotal').textContent,date=new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'long',year:'numeric'}).format(new Date());
- const table=rows.map(r=>'<tr>'+r.map((v,i)=>'<td>'+(i?v.toLocaleString('en-GB',{style:'currency',currency:'GBP'}):v)+'</td>').join('')+'</tr>').join('');
+ const totals=rows.reduce((a,r)=>a.map((v,i)=>v+r[i+2]),[0,0,0]);
+ const table=rows.map(r=>'<tr>'+r.map((v,i)=>'<td>'+(i?money(v):v)+'</td>').join('')+'</tr>').join('')+'<tr><td colspan="2">Totals</td>'+totals.map(v=>'<td>'+money(v)+'</td>').join('')+'<td>'+money(rows.at(-1)[5])+'</td></tr>';
  const w=window.open('','_blank');
  if(!w){alert('Please allow pop-ups to create the PDF illustration.');return}
  w.document.write(`<!doctype html><html><head><title>ABF Finance Illustration</title><style>
  @page{size:A4;margin:15mm 14mm 17mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#0B1F3B;margin:0;font-size:10px}.brand{border-bottom:3px solid #C9A96E;padding:0 0 14px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:flex-end}.logo{font-family:Georgia,serif;font-size:23px;font-weight:bold;letter-spacing:.04em}.logo span{display:block;color:#C9A96E;font:700 7px Arial,sans-serif;letter-spacing:.22em;margin-top:5px}.date{color:#687386;font-size:9px}.title{font-family:Georgia,serif;font-size:25px;margin:0 0 7px}.intro{color:#687386;font-size:10px;margin-bottom:20px}.inputs,.results{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}.box{border:1px solid #d9dde3;padding:10px}.box label{display:block;color:#687386;font-size:8px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}.box strong{font-size:12px}.results .box{background:#0B1F3B;color:#fff;border-color:#0B1F3B}.results .box label{color:#dbe4ef}.results .box strong{color:#fff}.results{grid-template-columns:repeat(3,1fr)}h2{font-family:Georgia,serif;font-size:16px;margin:20px 0 9px}table{width:100%;border-collapse:collapse;font-size:8px}thead{display:table-header-group}th{background:#0B1F3B;color:white;padding:6px;text-align:right}th:first-child,td:first-child{text-align:center}td{padding:5px 6px;border-bottom:1px solid #e3e6ea;text-align:right}tr{page-break-inside:avoid}.disclaimer{margin-top:16px;padding-top:10px;border-top:1px solid #C9A96E;color:#687386;font-size:7.5px;line-height:1.45}.footer{margin-top:8px;font-size:7px;color:#8992a0;text-align:center}@media print{button{display:none}}
- </style></head><body><div class="brand"><div class="logo">ANYTIME BUSINESS FINANCE<span>EXPERIENCE. ACCESS. RESULTS.</span></div><div class="date">Finance Illustration · ${date}</div></div><h1 class="title">Loan Repayment & Amortisation Illustration</h1><p class="intro">Illustrative repayment schedule generated using the assumptions below.</p><div class="inputs"><div class="box"><label>Loan amount</label><strong>${money(amount)}</strong></div><div class="box"><label>Rate type / value</label><strong>${math.MODES.find(x=>x[0]===loanResult.mode)[1]}: ${rate}${loanResult.mode==='factor'?'':'%'}</strong></div><div class="box"><label>Term</label><strong>${months} months</strong></div><div class="box"><label>Frequency</label><strong>${frequency}</strong></div><div class="box"><label>Arrangement fee / treatment</label><strong>${$('loanFeeUnit').value==='percent'?num('loanFee')+'% = ':''}${money(loanResult.fees)} / ${$('loanFeeTreatment').options[$('loanFeeTreatment').selectedIndex].text}</strong></div><div class="box"><label>Interest basis</label><strong>${loanResult.interestBasis}</strong></div><div class="box"><label>Net advance</label><strong>${money(loanResult.netAdvance)}</strong></div><div class="box"><label>Total cost including fee</label><strong>${money(loanResult.totalCost)}</strong></div></div><div class="results"><div class="box"><label>Indicative repayment</label><strong>${repayment}</strong></div><div class="box"><label>Total interest</label><strong>${totalInterest}</strong></div><div class="box"><label>Total payable including fee</label><strong>${total}</strong></div></div><h2>Amortisation Schedule</h2><table><thead><tr><th>Period</th><th>Opening balance</th><th>Repayment</th><th>Interest</th><th>Capital</th><th>Closing balance</th></tr></thead><tbody>${table}</tbody></table><div class="disclaimer"><strong>Important:</strong> This document provides an illustrative calculation only and is not a finance offer, quotation or recommendation. Includes the entered arrangement fee. Other unentered fees and transaction costs are excluded. Actual repayments, interest calculations, fees, security requirements and facility terms vary by lender and product. Finance is subject to status, eligibility and lender approval.</div><div class="footer">Anytime Business Finance Ltd · Commercial finance intermediary, not a lender.</div><script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script></body></html>`);
+ </style></head><body><div class="brand"><div class="logo">ANYTIME BUSINESS FINANCE<span>EXPERIENCE. ACCESS. RESULTS.</span></div><div class="date">Finance Illustration · ${date}</div></div><h1 class="title">Loan Repayment & Amortisation Illustration</h1><p class="intro">Illustrative repayment schedule generated using the assumptions below.</p><div class="inputs"><div class="box"><label>Loan amount</label><strong>${money(amount)}</strong></div><div class="box"><label>Rate type / value</label><strong>${math.MODES.find(x=>x[0]===loanResult.mode)[1]}: ${rate}${loanResult.mode==='factor'?'':'%'}</strong></div><div class="box"><label>Term</label><strong>${months} months</strong></div><div class="box"><label>Frequency</label><strong>${frequency}</strong></div><div class="box"><label>Arrangement fee / treatment</label><strong>${$('loanFeeUnit').value==='percent'?num('loanFee')+'% = ':''}${money(loanResult.fees)} / ${$('loanFeeTreatment').options[$('loanFeeTreatment').selectedIndex].text}</strong></div><div class="box"><label>Interest basis</label><strong>${loanResult.interestBasis}</strong></div><div class="box"><label>Net advance</label><strong>${money(loanResult.netAdvance)}</strong></div><div class="box"><label>Total cost including fee</label><strong>${money(loanResult.totalCost)}</strong></div></div><div class="results"><div class="box"><label>Indicative repayment</label><strong>${repayment}</strong></div><div class="box"><label>Total interest</label><strong>${totalInterest}</strong></div><div class="box"><label>Total payable including fee</label><strong>${total}</strong></div></div><h2>Amortisation Schedule</h2><table><thead><tr><th>Period</th><th>Opening balance</th><th>Repayment</th><th>Interest</th><th>Capital</th><th>Closing balance</th></tr></thead><tbody>${table}</tbody></table><div class="disclaimer"><strong>Important:</strong> This document provides an illustrative calculation only and is not a finance offer, quotation or recommendation. Includes the entered arrangement fee. Other unentered fees and transaction costs are excluded. Payments are at period end. Daily quotes use 365 days per year with equal repayment periods. Calculations use full precision; displayed amounts are rounded to pennies, so displayed rows may not sum exactly. Actual repayments, interest calculations, fees, security requirements and facility terms vary by lender and product. Finance is subject to status, eligibility and lender approval.</div><div class="footer">Anytime Business Finance Ltd · Commercial finance intermediary, not a lender.</div><script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script></body></html>`);
  w.document.close();
  window.ABFAnalytics?.illustrationCreated();
 }
