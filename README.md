@@ -53,14 +53,33 @@ No CRM integration or report dashboard has been configured by this change.
 
 ## Calculator mathematics
 
-All nine quoted rate bases are available in the business loan, revolving credit,
-property and asset calculators. The original CRM-derived module (blob
+The public calculators use short, product-specific menus:
+
+| Calculator | Rate choices |
+| --- | --- |
+| Business loans | Annual reducing, monthly reducing, flat annual, factor |
+| Revolving credit (interest-only illustration) | Annual, monthly, simple daily interest on the drawn balance |
+| Commercial mortgage | Annual interest, with capital-and-interest or interest-only payments |
+| Bridging finance | Monthly interest, serviced, retained or rolled up with monthly compounding |
+| Asset finance | Flat annual or annual reducing, with deposit and optional balloon |
+
+Mortgage and bridging sit in the same property tab; the rate basis follows the
+selected product automatically. Switching products restores the visitor's rate,
+term and repayment choice for that product. Starting values are illustrations,
+not market prices. The longer technical assumptions are in an expandable section.
+
+The original nine modes remain supported by the calculation module for backwards
+compatibility, but are not all exposed in the public menus. The new
+`daily_simple` mode calculates revolving interest without daily compounding and
+uses 365 days per year; the monthly result is labelled as an average. The
+original CRM-derived module (blob
 `4d4654431406be601f42d4df2c70c890bdb2d968`) has been corrected by the website audit;
 do not assume unchanged parity with an external CRM.
 
-- Nominal annual interest is divided by the payment frequency. Annual effective,
-  monthly and daily interest quotes are compounded into the payment period.
-  Daily quotes use 365 days per year and equal periods, not actual calendar dates.
+- Nominal annual interest is divided by the payment frequency. Monthly interest
+  is converted to the repayment period. The legacy annual effective and
+  compounded daily modes retain their original conversions. All daily modes
+  use 365 days per year and equal periods, not actual calendar dates.
 - Reducing-balance repayments follow an annuity with payments at period end.
   The asset balloon is an additional payment with the final regular instalment.
   Flat annual/monthly, factor and full-term yield quotes specify total charges;
