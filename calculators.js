@@ -33,7 +33,7 @@ function guarded(prefix,calculate){
  return ()=>{
   panel.querySelectorAll('input').forEach(e=>{e.removeAttribute('aria-invalid');e.setAttribute('aria-describedby',error.id);});
   try{
-   for(const e of panel.querySelectorAll('input')){
+   for(const e of panel.querySelectorAll('input:not(:disabled)')){
     const value=Number(e.value),label=e.closest('label').textContent.trim();
     let message='';
     if(e.value.trim()===''||!Number.isFinite(value))message='Enter a number for '+label+'.';
@@ -73,6 +73,24 @@ function facility(prefix,style){
   : (style==='amortizing'?'Balance after final repayment: ':'Amount due at maturity: ')+money(result.balloon)+'. '+(style==='amortizing'?'The final regular repayment is still payable in the last month. ':style==='retained'?'No monthly payments: '+money(result.retainedInterest)+' interest is withheld at drawdown and included in total payable, not charged again at maturity. ':style==='compound'?'No monthly payments: interest compounds monthly and is paid at maturity. ':'Capital is repaid with the last monthly interest payment. ')+'Entered fees are included in total cost.';
 }
 function calculateAsset(){
+ const product=$('assetProduct').value;
+ if(product==='lease'){
+  const rental=num('assetRental'),initial=num('assetInitialRental'),count=num('assetTerm'),final=num('assetFinalRental'),fee=num('assetFee');
+  const total=initial+rental*count+final+fee;
+  if(!Number.isFinite(total))throw new RangeError('These rental totals exceed the calculation range.');
+  $('assetPayment').textContent=money(rental);$('assetInitialPayment').textContent=money(initial+fee);$('assetTotal').textContent=money(total);
+  $('assetNote').textContent='Rental profile: '+money(initial)+' initially, then '+count+' monthly rentals of '+money(rental)+', plus '+money(final)+' additional final rental. The '+money(fee)+' arrangement fee is paid upfront. Figures exclude VAT, secondary rentals and other unentered charges. The finance provider retains ownership; end-of-lease options depend on the agreement.';
+  return;
+ }
+ if(product==='refinance'){
+  const advance=num('assetAdvance'),settlement=num('assetSettlement');
+  const result=math.calculate(inputs('asset',advance,num('assetTerm'),'amortizing',12,num('assetBalloon')));
+  if(settlement>result.netAdvance)throw new RangeError('Existing finance settlement must not exceed the advance after upfront fees.');
+  $('assetFinanced').textContent=money(result.financedAmount);$('assetPayment').textContent=money(result.payment);$('assetInterest').textContent=money(result.financeCharge);$('assetTotal').textContent=money(result.totalRepayable);details('asset',result);
+  $('assetNet').textContent=money(result.netAdvance-settlement);
+  $('assetNote').textContent='Cash released after '+money(settlement)+' existing finance settlement and upfront fees: '+money(result.netAdvance-settlement)+'. Balloon due with the final monthly repayment: '+money(result.balloon)+'. Percentage fees apply to the requested refinance advance. Availability depends on the asset valuation and lender terms.';
+  return;
+ }
  const cost=num('assetCost'),deposit=num('assetDeposit');
  if(deposit>cost)throw new RangeError('Deposit must not exceed the asset cost.');
  const result=math.calculate(inputs('asset',cost-deposit,num('assetTerm'),'amortizing',12,num('assetBalloon')));
@@ -116,6 +134,34 @@ function setPropertyProduct(save=true){
 }
 $('propertyProduct').addEventListener('input',()=>setPropertyProduct());
 setPropertyProduct(false);
+const assetFields=['assetCost','assetDeposit','assetAdvance','assetSettlement','assetMode','assetRate','assetTerm','assetBalloon','assetRental','assetInitialRental','assetFinalRental','assetFee','assetFeeUnit','assetFeeTreatment','assetBasis'];
+const assetSnapshot=()=>Object.fromEntries(assetFields.map(id=>[id,$(id).value]));
+const assetQuotes={hp:assetSnapshot()};
+assetQuotes.lease={...assetQuotes.hp,assetRental:'800',assetInitialRental:'2400',assetFinalRental:'0',assetTerm:'35',assetFee:'0',assetFeeUnit:'gbp',assetFeeTreatment:'upfront'};
+assetQuotes.refinance={...assetQuotes.hp,assetAdvance:'50000',assetSettlement:'0',assetDeposit:'0',assetBalloon:'0',assetTerm:'60'};
+let assetProduct='hp';
+function setAssetProduct(save=true){
+ if(save)assetQuotes[assetProduct]=assetSnapshot();
+ assetProduct=$('assetProduct').value;
+ const saved=assetQuotes[assetProduct],lease=assetProduct==='lease',refinance=assetProduct==='refinance';
+ $('assetMode').value=saved.assetMode;$('assetMode').dispatchEvent(new Event('input'));
+ for(const [id,value] of Object.entries(saved))$(id).value=value;
+ const shown={assetCost:!lease&&!refinance,assetDeposit:!lease&&!refinance,assetAdvance:refinance,assetSettlement:refinance,assetMode:!lease,assetRate:!lease,assetBalloon:!lease,assetRental:lease,assetInitialRental:lease,assetFinalRental:lease,assetFeeUnit:!lease,assetFeeTreatment:!lease,assetBasis:!lease};
+ for(const [id,visible] of Object.entries(shown)){$(id).closest('label').hidden=!visible;$(id).disabled=!visible;}
+ $('assetAdvanced').hidden=lease;
+ for(const id of ['assetFinanced','assetInterest','assetTotalCost','assetNet'])$(id).closest('div').hidden=lease;
+ $('assetInitialPayment').closest('div').hidden=!lease;
+ $('assetTermLabel').textContent=lease?'Further monthly rentals (number)':'Term (months)';
+ $('assetPaymentLabel').textContent=lease?'Quoted monthly rental (excl. VAT)':'Indicative monthly repayment';
+ $('assetTotalLabel').textContent=lease?'Total rentals and fee (excl. VAT)':refinance?'Total repayments including fee':'Total payable incl. deposit and fee';
+ $('assetNetLabel').textContent=refinance?'Net cash released':'Net advance available';
+ $('assetFeeLabel').textContent=lease?'Arrangement fee (£)':$('assetFeeUnit').value==='percent'?'Loan arrangement fee (% of loan amount)':'Loan arrangement fee (£)';
+ $('assetDescription').textContent=lease?'Enter the rental amounts from your lease quote. The initial rental and further monthly rentals are added separately; include any additional final rental. All figures exclude VAT.':refinance?'Estimate repayments and cash released against an existing asset, after settling any current finance. Enter your proposed advance and quoted rate.':'Estimate hire purchase repayments with a deposit and optional balloon. Ownership normally transfers after all payments and any purchase-option fee are paid. Taxes and unentered fees are excluded.';
+ asset();
+}
+$('assetProduct').addEventListener('input',()=>setAssetProduct());
+for(const id of ['assetAdvance','assetSettlement','assetRental','assetInitialRental','assetFinalRental'])$(id).addEventListener('input',asset);
+setAssetProduct(false);
 [['loanAmount',loan],['loanRate',loan],['loanTerm',loan],['loanFrequency',loan],['ioAmount',io],['ioRate',io],['ioTerm',io],['propertyAmount',property],['propertyRate',property],['propertyTerm',property],['propertyType',property],['assetCost',asset],['assetDeposit',asset],['assetRate',asset],['assetTerm',asset],['assetBalloon',asset]].forEach(([id,fn])=>$(id)?.addEventListener('input',fn));
 
 function pdfIllustration(){
