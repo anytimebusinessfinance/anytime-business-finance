@@ -14,7 +14,7 @@ openLinkedCalculator();
 let rows=[];
 const math=window.CRMRateMath;
 const productRates={
- loan:[['annual_reducing','Annual reducing (% p.a.)'],['monthly_reducing','Monthly reducing (% per month)'],['flat_annual','Flat annual (% p.a.)'],['factor','Factor rate (e.g. 1.2)']],
+ loan:[['annual_reducing','Annual reducing (% p.a.)'],['monthly_reducing','Monthly interest (% per month)'],['flat_annual','Flat annual (% p.a.)'],['factor','Factor rate (e.g. 1.2)']],
  io:[['annual_reducing','Annual interest (% p.a.)'],['monthly_reducing','Monthly interest (% per month)'],['daily_simple','Daily interest (% per day)']],
  property:[['annual_reducing','Annual interest (% p.a.)'],['monthly_reducing','Monthly interest (% per month)']],
  asset:[['flat_annual','Flat annual (% p.a.)'],['annual_reducing','Annual reducing (% p.a.)']]
