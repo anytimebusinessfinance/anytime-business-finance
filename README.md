@@ -61,12 +61,25 @@ The public calculators use short, product-specific menus:
 | Revolving credit (interest-only illustration) | Annual, monthly, simple daily interest on the drawn balance |
 | Commercial mortgage | Annual interest, with capital-and-interest or interest-only payments |
 | Bridging finance | Monthly interest, serviced, retained or rolled up with monthly compounding |
-| Asset finance | Flat annual or annual reducing, with deposit and optional balloon |
+| Hire purchase | Flat annual or annual reducing, with deposit and optional balloon |
+| Finance lease | Quoted initial rental, number of further monthly rentals, monthly amount and optional additional final rental |
+| Asset refinance | Flat annual or annual reducing on the refinance advance; existing settlement deducted from cash released |
 
 Mortgage and bridging sit in the same property tab; the rate basis follows the
 selected product automatically. Switching products restores the visitor's rate,
 term and repayment choice for that product. Starting values are illustrations,
 not market prices. The longer technical assumptions are in an expandable section.
+
+Hire purchase, finance lease and asset refinance sit in the same asset tab, with
+only the relevant fields shown and each product's entries remembered separately.
+Lease totals add the initial rental, the specified number of further monthly
+rentals, any additional final rental and the upfront cash arrangement fee. The
+initial rental is not included again in the further-rental count. Figures exclude
+VAT, secondary rentals and unentered charges; the lender retains ownership.
+Refinance uses the requested advance, not an assumed percentage of asset value.
+Net cash released deducts upfront fees and the entered existing-finance settlement;
+settlements above the available advance show an error. Loan-style interest,
+deposits and net advances are not shown for the rental illustration.
 
 The original nine modes remain supported by the calculation module for backwards
 compatibility, but are not all exposed in the public menus. The new
