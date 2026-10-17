@@ -13,6 +13,8 @@
   ];
   // Preserve the stored mode ID; this input is an interest rate, not a fee-inclusive APR.
   const MODES = [LEGACY_MODES[1], ...LEGACY_MODES.filter(mode => mode[0] !== 'apr_effective')];
+  // Simple daily accrual is distinct from the legacy compounded daily rate.
+  const DAILY_SIMPLE = 'daily_simple';
   function setRateSelection(select, value) {
     if (!select) return;
     select.querySelectorAll('[data-saved-rate]').forEach(option => option.remove());
@@ -39,6 +41,7 @@
   function periodRate(value, mode, periodsPerYear) {
     const x = Math.max(0, Number(value) || 0) / 100;
     if (mode === 'annual_reducing') return x / periodsPerYear;
+    if (mode === DAILY_SIMPLE) return x * 365 / periodsPerYear;
     if (mode === 'apr_effective' || mode === 'effective_yield') return Math.expm1(Math.log1p(x) / periodsPerYear);
     if (mode === 'monthly_reducing') return Math.expm1(Math.log1p(x) * 12 / periodsPerYear);
     if (mode === 'daily_reducing') return Math.expm1(Math.log1p(x) * 365 / periodsPerYear);
@@ -90,7 +93,7 @@
     if (!Number.isInteger(frequency) || frequency < 1 || frequency > 365 || !Number.isInteger(periods) || periods < 1) throw new RangeError('Term must contain a whole number of repayment periods; quarterly terms must be a multiple of 3 months.');
     const mode = input.mode || 'annual_reducing';
     const style = input.style || 'amortizing';
-    if (!MODES.some(([id]) => id === mode) || !STYLES.some(([id]) => id === style)) throw new RangeError('Choose a supported rate and repayment type.');
+    if ((!MODES.some(([id]) => id === mode) && mode !== DAILY_SIMPLE) || !STYLES.some(([id]) => id === style)) throw new RangeError('Choose a supported rate and repayment type.');
     const quote = number(input.rate, 0, 'Rate');
     if (mode === 'factor' && quote < 1) throw new RangeError('Factor rate must be at least 1.');
     const feeQuote = String(input.fees ?? 0).replace(/[£,%\s]/g, '');

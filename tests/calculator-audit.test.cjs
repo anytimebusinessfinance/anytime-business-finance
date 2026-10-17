@@ -53,6 +53,12 @@ for (const mode of ['annual_reducing', 'apr_effective', 'effective_yield', 'mont
   const x = RM.calculate({amount: 12000, rate: 1e-14, mode, termMonths: 12, balloon: 6000});
   near(x.payment, 500); near(x.totalCost, 0);
 }
+for (const feeTreatment of ['upfront','financed']) for (const interestBasis of ['gross','net']) {
+  const x = RM.calculate({amount:50000,rate:0.1,mode:'daily_simple',style:'serviced',termMonths:12,fees:1000,feeTreatment,interestBasis});
+  const basis = interestBasis==='net' ? (feeTreatment==='upfront'?49000:50000) : (feeTreatment==='financed'?51000:50000);
+  near(x.financeCharge,basis*0.001*365);
+  near(x.payment,basis*0.001*365/12);
+}
 const zero = RM.calculate({amount: 12000, rate: 0, termMonths: 12});
 assert.equal(zero.annualizedAnnual, 0); near(zero.payment, 1000);
 const retained = RM.calculate({amount: 100000, rate: 12, termMonths: 12, style: 'retained', fees: 1000});
@@ -81,7 +87,7 @@ for (const prefix of ['loan', 'io', 'property', 'asset']) {
   fill({[prefix + 'Rate']: 0}); assert.equal($(prefix + 'Error').hidden, true);
   fill({[prefix + 'Term']: 1.5}); assert.equal($(prefix + 'Error').hidden, false);
   fill({[prefix + 'Term']: 12}); assert.equal($(prefix + 'Error').hidden, true);
-  fill({[prefix + 'Mode']: 'factor', [prefix + 'Rate']: 0.9}); assert.equal($(prefix + 'Error').hidden, false);
+  fill({[prefix + 'Rate']: -1}); assert.equal($(prefix + 'Error').hidden, false);
   fill({[prefix + 'Mode']: 'annual_reducing', [prefix + 'Rate']: 12}); assert.equal($(prefix + 'Error').hidden, true);
 }
 fill({loanFrequency: 4, loanTerm: 10});
@@ -95,12 +101,12 @@ assert.equal($('assetFinanced').textContent, '£81,600.00');
 assert.equal($('assetPayment').textContent, '£5,133.33');
 assert.equal($('assetTotal').textContent, '£101,600.00');
 assert.match($('assetNote').textContent, /£20,000.00/);
-fill({propertyType: 'retained', propertyAmount: 100000, propertyRate: 12, propertyFee: 1000});
+fill({propertyProduct: 'bridging', propertyType: 'retained', propertyAmount: 100000, propertyTerm: 12, propertyRate: 1, propertyFee: 1000});
 assert.equal($('propertyTotal').textContent, '£113,000.00');
 assert.equal($('propertyNet').textContent, '£87,000.00');
 assert.match($('propertyMonthlyLabel').textContent, /not a payment/);
 fill({propertyRate: 100}); assert.equal($('propertyError').hidden, false);
-fill({propertyType: 'amortizing', propertyRate: 12});
+fill({propertyProduct: 'mortgage', propertyType: 'amortizing', propertyRate: 12});
 assert.match($('propertyNote').textContent, /final regular repayment is still payable/);
 
 let illustration;

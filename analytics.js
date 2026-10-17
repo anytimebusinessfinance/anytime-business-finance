@@ -5,7 +5,7 @@
   const storageKey = 'abf-analytics-consent-v1';
   const lifetime = 180 * 24 * 60 * 60 * 1000;
   const calculators = new Set(['loan', 'interest', 'property', 'asset']);
-  const modes = new Set(['annual_reducing', 'apr_effective', 'effective_yield', 'monthly_reducing', 'daily_reducing', 'flat_annual', 'flat_monthly', 'factor', 'term_yield']);
+  const modes = new Set(['annual_reducing', 'apr_effective', 'effective_yield', 'monthly_reducing', 'daily_reducing', 'daily_simple', 'flat_annual', 'flat_monthly', 'factor', 'term_yield']);
   const once = new Set();
   let consent = readConsent(), loaded = false, pageSent = false, dialog, returnFocus;
   function readConsent() {
