@@ -2,7 +2,7 @@
   "name": "anytime-business-finance-website",
   "private": true,
   "scripts": {
-    "test": "node tests/rate-math.test.cjs && node tests/calculator-ui.test.cjs && node tests/calculator-audit.test.cjs && node tests/website-tracking.test.cjs"
+    "test": "node tests/rate-math.test.cjs && node tests/calculator-ui.test.cjs && node tests/calculator-audit.test.cjs && node tests/website-tracking.test.cjs && node tests/security-policy.test.cjs"
   },
   "devDependencies": {
     "jsdom": "30.1.3"
