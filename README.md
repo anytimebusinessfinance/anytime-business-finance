@@ -2,8 +2,9 @@
 Premium navy/gold static site prepared for GitHub Pages preview.
 GitHub Pages cannot process the PHP enquiry handler. The preview therefore shows
 an email contact link and keeps the form hidden, instead of claiming that an
-enquiry was received. The form uses POST for a future PHP-capable host; reveal it
-only after configuring and testing actual delivery on that host.
+enquiry was received. The form stays hidden and disabled until a reviewed server-side delivery route
+is configured and genuinely tested. The legacy PHP source is excluded from the
+static build. See LAUNCH_READINESS.md for preparation and activation steps.
 
 ## Website analytics activation
 

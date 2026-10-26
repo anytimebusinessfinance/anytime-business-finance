@@ -1,0 +1,13 @@
+// Only intentional public assets enter the website artifact.
+const fs=require('node:fs'),path=require('node:path');
+const pages=['index.html','about.html','asset-finance.html','business-finance-essex.html','business-loans.html','calculators.html','contact.html','cookies.html','discuss-funding.html','faqs.html','finance-solutions.html','funding-guide.html','glossary.html','healthcare-finance.html','invoice-finance.html','knowledge-centre.html','privacy.html','property-finance.html','revolving-credit.html','sector-finance.html','terms.html','testimonials.html','thank-you.html','why-abf.html','working-capital.html'];
+const files=[...pages,'styles.css','script.js','analytics-config.js','analytics.js','calculators.js','rate-math.js','testimonials.js','robots.txt','sitemap.xml','_headers'];
+function build(root=path.resolve(__dirname,'..'),output=path.join(root,'.site-build'),baseUrl){
+ root=path.resolve(root);output=path.resolve(output);if(output===root||!output.startsWith(root+path.sep)&&!output.startsWith('/tmp/'))throw Error('Use a dedicated child or temporary build directory.');
+ let base;if(baseUrl){const url=new URL(baseUrl);if(url.protocol!=='https:'||url.username||url.password||url.search||url.hash)throw Error('Set an HTTPS website base URL without credentials, query or fragment.');base=url.href.replace(/\/?$/,'/');}
+ const assets=[];function walk(dir){for(const name of fs.readdirSync(path.join(root,dir)).sort()){const relative=path.join(dir,name),p=path.join(root,relative),s=fs.lstatSync(p);if(s.isSymbolicLink())throw Error('Symlink in public assets.');if(s.isDirectory())walk(relative);else if(s.isFile()&&/\.(?:png|jpe?g|webp|svg|ico|woff2?|ttf)$/i.test(name))assets.push(relative);else throw Error('Unreviewed public asset: '+relative);}}walk('assets');
+ fs.rmSync(output,{recursive:true,force:true});fs.mkdirSync(output,{recursive:true});
+ for(const file of [...files,...assets]){const src=path.join(root,file),dest=path.join(output,file);if(!fs.lstatSync(src).isFile())throw Error('Expected regular public file: '+file);fs.mkdirSync(path.dirname(dest),{recursive:true});if(base&&/\.(?:html|xml|txt)$/.test(file)){const html=fs.readFileSync(src,'utf8').replaceAll('https://anytimebusinessfinance.github.io/anytime-business-finance/',base);fs.writeFileSync(dest,html);}else fs.copyFileSync(src,dest);}
+ return {output,files:[...files,...assets],formDelivery:'Email contact fallback; no server-side delivery configured by this build.'};
+}
+module.exports={build};if(require.main===module){const result=build(undefined,undefined,process.env.ABF_SITE_BASE_URL);console.log(JSON.stringify({files:result.files.length,output:result.output,formDelivery:result.formDelivery}));}
